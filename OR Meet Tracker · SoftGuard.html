@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OR Meet Tracker · SoftGuard</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap');
+  :root {
+    --bg:#0f0f0f;--surface:#1a1a1a;--surface2:#242424;--border:#2e2e2e;
+    --accent:#c8f135;--text:#f0f0f0;--text-dim:#888;--text-dimmer:#555;
+    --red:#ff4d4d;--green:#c8f135;--orange:#f1a135;--blue:#3b82f6;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:24px;}
+
+  /* LOADING */
+  .overlay{position:fixed;inset:0;background:rgba(15,15,15,0.9);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:12px;}
+  .overlay.hidden{display:none;}
+  .spinner{width:28px;height:28px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .overlay-text{font-family:'DM Mono',monospace;font-size:11px;color:var(--text-dim);letter-spacing:1px;}
+
+  /* HEADER */
+  header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid var(--border);}
+  header h1{font-size:22px;font-weight:800;letter-spacing:-0.5px;}
+  header h1 span{color:var(--accent);}
+  .header-meta{font-family:'DM Mono',monospace;font-size:10px;color:var(--text-dimmer);margin-top:4px;letter-spacing:0.5px;}
+  .week-selector{display:flex;align-items:center;gap:8px;}
+  .wbtn{background:var(--surface2);border:1px solid var(--border);color:var(--text);width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all 0.15s;}
+  .wbtn:hover{background:var(--accent);color:var(--bg);border-color:var(--accent);}
+  .week-label{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:4px 14px;font-family:'DM Mono',monospace;font-size:11px;}
+
+  /* OR TABS */
+  .or-tabs{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;}
+  .or-tab{font-family:'Syne',sans-serif;font-weight:700;font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:7px 16px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text-dim);cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:6px;}
+  .or-tab:hover{border-color:var(--accent);color:var(--accent);}
+  .or-tab.active{background:var(--accent);color:var(--bg);border-color:var(--accent);}
+  .or-tab.mx-active{background:var(--blue);color:#fff;border-color:var(--blue);}
+  .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+  .dot.g{background:var(--green);} .dot.o{background:var(--orange);} .dot.r{background:var(--red);} .dot.b{background:var(--blue);}
+
+  /* BP TABS */
+  .bp-wrap{display:none;margin-bottom:20px;padding:14px 16px;background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.2);border-radius:10px;}
+  .bp-wrap.show{display:block;}
+  .bp-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:#93c5fd;margin-bottom:10px;opacity:0.8;}
+  .bp-tabs{display:flex;gap:6px;flex-wrap:wrap;}
+  .bp-tab{font-family:'Syne',sans-serif;font-weight:600;font-size:11px;padding:6px 16px;border-radius:6px;border:1px solid rgba(59,130,246,0.3);background:transparent;color:#93c5fd;cursor:pointer;transition:all 0.15s;}
+  .bp-tab:hover{border-color:var(--blue);color:#fff;}
+  .bp-tab.active{background:var(--blue);color:#fff;border-color:var(--blue);}
+
+  /* CONTEXT BADGE */
+  .ctx-badge{display:inline-flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.8px;padding:4px 12px;border-radius:20px;margin-bottom:16px;}
+  .ctx-badge.or{background:rgba(200,241,53,0.07);border:1px solid rgba(200,241,53,0.2);color:var(--accent);}
+  .ctx-badge.mx{background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);color:#93c5fd;}
+
+  /* CARDS */
+  .main-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;}
+  .card-full{grid-column:1/-1;}
+  .clabel{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-dim);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+  .clabel::after{content:'';flex:1;height:1px;background:var(--border);}
+
+  /* KPIS */
+  .kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .kpi-item{background:var(--surface2);border-radius:8px;padding:12px;text-align:center;}
+  .kpi-item label{display:block;font-family:'DM Mono',monospace;font-size:9px;color:var(--text-dimmer);letter-spacing:0.8px;text-transform:uppercase;margin-bottom:6px;}
+  .kpi-item input{width:100%;background:transparent;border:none;color:var(--accent);font-family:'DM Mono',monospace;font-size:22px;font-weight:500;text-align:center;outline:none;}
+  .kpi-item input::placeholder{color:var(--text-dimmer);font-size:18px;}
+  .kpi-item input.money{font-size:15px;}
+
+  /* COMPROMISOS */
+  .clist{display:flex;flex-direction:column;gap:8px;}
+  .citem{display:flex;align-items:center;gap:10px;background:var(--surface2);border-radius:8px;padding:10px 12px;border:1px solid transparent;transition:border-color 0.15s;}
+  .citem:focus-within{border-color:var(--border);}
+  .ccheck{width:18px;height:18px;border-radius:5px;border:2px solid var(--border);cursor:pointer;appearance:none;flex-shrink:0;transition:all 0.15s;position:relative;}
+  .ccheck:checked{background:var(--accent);border-color:var(--accent);}
+  .ccheck:checked::after{content:'✓';position:absolute;top:-2px;left:2px;font-size:13px;color:var(--bg);font-weight:700;}
+  .ctext{flex:1;background:transparent;border:none;color:var(--text);font-family:'Syne',sans-serif;font-size:13px;outline:none;}
+  .ctext::placeholder{color:var(--text-dimmer);}
+  .ctext.done{text-decoration:line-through;color:var(--text-dim);}
+  .add-btn{background:transparent;border:1px dashed var(--border);border-radius:8px;padding:9px;color:var(--text-dimmer);font-family:'Syne',sans-serif;font-size:12px;cursor:pointer;width:100%;transition:all 0.15s;margin-top:8px;}
+  .add-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+  /* NOTES */
+  .notes{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;color:var(--text);font-family:'Syne',sans-serif;font-size:13px;resize:vertical;min-height:80px;outline:none;line-height:1.6;transition:border-color 0.15s;}
+  .notes:focus{border-color:var(--text-dimmer);}
+  .notes::placeholder{color:var(--text-dimmer);}
+
+  /* BOTTOM */
+  .bottom-bar{display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding-top:16px;border-top:1px solid var(--border);gap:10px;flex-wrap:wrap;}
+  .sbadge{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:5px 12px;border-radius:20px;border:1px solid;cursor:pointer;transition:all 0.15s;background:none;opacity:0.35;}
+  .sbadge.on{opacity:1;}
+  .sbadge.verde{color:var(--green);border-color:var(--green);}
+  .sbadge.amarillo{color:var(--orange);border-color:var(--orange);}
+  .sbadge.rojo{color:var(--red);border-color:var(--red);}
+  .save-btn{font-family:'Syne',sans-serif;font-weight:700;font-size:12px;background:var(--accent);color:var(--bg);border:none;border-radius:8px;padding:9px 22px;cursor:pointer;transition:all 0.15s;}
+  .save-btn:hover{opacity:0.85;transform:translateY(-1px);}
+  .flash{font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);opacity:0;transition:opacity 0.3s;}
+  .flash.show{opacity:1;}
+
+  /* HISTORY */
+  .hist-btn{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--text-dim);background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;gap:6px;transition:color 0.15s;margin-top:16px;}
+  .hist-btn:hover{color:var(--accent);}
+  .hist-panel{display:none;margin-top:12px;background:var(--surface2);border-radius:10px;padding:16px;}
+  .hist-panel.open{display:block;}
+  .hw{margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+  .hw:last-child{border:none;margin:0;padding:0;}
+  .hw-label{font-family:'DM Mono',monospace;font-size:10px;color:var(--text-dimmer);letter-spacing:1px;margin-bottom:8px;text-transform:uppercase;}
+  .hc{font-size:12px;color:var(--text-dim);padding:3px 0;display:flex;align-items:center;gap:8px;}
+  .tick{color:var(--green);} .cross{color:var(--red);}
+
+  /* SYNC STATUS */
+  .sync-bar{font-family:'DM Mono',monospace;font-size:10px;color:var(--text-dimmer);letter-spacing:0.5px;margin-bottom:20px;display:flex;align-items:center;gap:8px;}
+  .sync-dot{width:6px;height:6px;border-radius:50%;background:var(--text-dimmer);}
+  .sync-dot.ok{background:var(--green);}
+  .sync-dot.err{background:var(--red);}
+  .sync-dot.loading{background:var(--orange);animation:pulse 1s infinite;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+
+  /* ERROR BANNER */
+  .err-banner{background:rgba(255,77,77,0.1);border:1px solid rgba(255,77,77,0.3);border-radius:8px;padding:12px 16px;font-family:'DM Mono',monospace;font-size:11px;color:var(--red);margin-bottom:16px;display:none;}
+  .err-banner.show{display:block;}
+
+  @media(max-width:620px){.main-grid{grid-template-columns:1fr;}.card-full{grid-column:1;}}
+</style>
+</head>
+<body>
+
+<!-- ⚠️ CAMBIÁ ESTA URL después de deployar el Apps Script -->
+<script>const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyeatihS7hVkuqC1saVuhi3T3Dv59X3SXR_yXn5H6q_jwUoQ8hBBcItoIJ-W1YItm8X/exec';</script>
+
+<!-- LOADING OVERLAY -->
+<div class="overlay" id="overlay">
+  <div class="spinner"></div>
+  <div class="overlay-text" id="overlayText">cargando datos...</div>
+</div>
+
+<header>
+  <div>
+    <h1>OR <span>Meet Tracker</span></h1>
+    <div class="header-meta">SoftGuard · Gerencia Comercial HQ</div>
+  </div>
+  <div class="week-selector">
+    <button class="wbtn" onclick="changeWeek(-1)">‹</button>
+    <div class="week-label" id="weekLabel"></div>
+    <button class="wbtn" onclick="changeWeek(1)">›</button>
+  </div>
+</header>
+
+<div class="sync-bar">
+  <div class="dot sync-dot" id="syncDot"></div>
+  <span id="syncText">conectando...</span>
+</div>
+
+<div class="err-banner" id="errBanner"></div>
+
+<div class="or-tabs" id="orTabs"></div>
+
+<div class="bp-wrap" id="bpWrap">
+  <div class="bp-label">🇲🇽 México · Business Partners</div>
+  <div class="bp-tabs" id="bpTabs"></div>
+</div>
+
+<div id="mainContent"></div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────
+const ORS = [
+  { id:'peru',     name:'Perú',      flag:'🇵🇪', type:'or' },
+  { id:'chile',    name:'Chile',     flag:'🇨🇱', type:'or' },
+  { id:'colombia', name:'Colombia',  flag:'🇨🇴', type:'or' },
+  { id:'venezuela',name:'Venezuela', flag:'🇻🇪', type:'or' },
+  { id:'panama',   name:'Panamá',    flag:'🇵🇦', type:'or' },
+  { id:'espana',   name:'España',    flag:'🇪🇸', type:'or' },
+  { id:'mexico',   name:'México',    flag:'🇲🇽', type:'mexico' },
+];
+
+const MEXICO_BPS = [
+  { id:'mx_juanpa', name:'Juan Pablo Ávila', role:'BP' },
+  { id:'mx_syscom', name:'SYSCOM',           role:'Canal' },
+  { id:'mx_carlos', name:'Carlos Martínez',  role:'Rep' },
+];
+
+let weekOffset = 0;
+let currentOR  = 'peru';
+let currentBP  = 'mx_juanpa';
+let remoteData = {}; // todos los datos del backend
+
+// ── WEEK ─────────────────────────────────────────────────
+function wKey(off=0){
+  const n=new Date(),d=n.getDay(),diff=n.getDate()-d+(d===0?-6:1);
+  const m=new Date(n);m.setDate(diff+off*7);return m.toISOString().split('T')[0];
+}
+function wLabel(off=0){
+  const n=new Date(),d=n.getDay(),diff=n.getDate()-d+(d===0?-6:1);
+  const m=new Date(n);m.setDate(diff+off*7);
+  const f=new Date(m);f.setDate(m.getDate()+4);
+  const fmt=x=>x.toLocaleDateString('es-AR',{day:'2-digit',month:'short'});
+  return `${fmt(m)} — ${fmt(f)}`;
+}
+
+// ── SYNC STATUS ───────────────────────────────────────────
+function syncStatus(state, msg){
+  const dot=document.getElementById('syncDot');
+  const txt=document.getElementById('syncText');
+  dot.className='dot sync-dot '+(state==='ok'?'ok':state==='err'?'err':'loading');
+  txt.textContent=msg;
+}
+
+// ── DATA LOCAL ────────────────────────────────────────────
+function getLocal(entityId, wk){
+  if(!remoteData[entityId]) remoteData[entityId]={};
+  if(!remoteData[entityId][wk]){
+    remoteData[entityId][wk]={
+      kpis:{reuniones:'',cotizaciones:'',forecast:'',empresas:'',mails:''},
+      compromisos:[{text:'',done:false},{text:'',done:false},{text:'',done:false}],
+      notas:'', status:'amarillo'
+    };
+  }
+  return remoteData[entityId][wk];
+}
+
+function getStatus(entityId){
+  return remoteData[entityId]?.[wKey(weekOffset)]?.status||'amarillo';
+}
+
+// ── API ───────────────────────────────────────────────────
+async function apiCall(body){
+  const r = await fetch(SCRIPT_URL, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(body)
+  });
+  return r.json();
+}
+
+async function loadAll(){
+  syncStatus('loading','sincronizando...');
+  overlay(true,'cargando datos...');
+  try {
+    const res = await apiCall({ action:'loadAll' });
+    if(res.success){ remoteData = res.data || {}; syncStatus('ok','sincronizado · '+new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'})); }
+    else { syncStatus('err','error al cargar'); showErr('No se pudieron cargar los datos: '+res.error); }
+  } catch(e){ syncStatus('err','sin conexión'); showErr('Error de conexión. Verificá la URL del script en el HTML.'); }
+  overlay(false);
+  renderTabs();
+  renderContent();
+}
+
+async function doSave(){
+  const entityId = currentOR==='mexico' ? currentBP : currentOR;
+  const wk = wKey(weekOffset);
+  const data = getLocal(entityId, wk);
+
+  syncStatus('loading','guardando...');
+  try {
+    const res = await apiCall({ action:'save', entityId, weekKey:wk, data });
+    if(res.success){
+      syncStatus('ok','guardado · '+new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}));
+      const fl=document.getElementById('flash');
+      if(fl){fl.classList.add('show');setTimeout(()=>fl.classList.remove('show'),1500);}
+    } else {
+      syncStatus('err','error al guardar');
+      showErr('No se pudo guardar: '+res.error);
+    }
+  } catch(e){ syncStatus('err','error al guardar'); showErr('Error de conexión al guardar.'); }
+}
+
+// ── UI HELPERS ────────────────────────────────────────────
+function overlay(show, msg=''){
+  document.getElementById('overlay').classList.toggle('hidden',!show);
+  if(msg) document.getElementById('overlayText').textContent=msg;
+}
+function showErr(msg){
+  const b=document.getElementById('errBanner');b.textContent=msg;b.classList.add('show');
+  setTimeout(()=>b.classList.remove('show'),6000);
+}
+
+// ── RENDER TABS ───────────────────────────────────────────
+function renderTabs(){
+  // OR tabs
+  document.getElementById('orTabs').innerHTML = ORS.map(or=>{
+    const isMx = or.type==='mexico';
+    const isActive = currentOR===or.id;
+    let st;
+    if(isMx){
+      const statuses = MEXICO_BPS.map(bp=>getStatus(bp.id));
+      st = statuses.includes('rojo')?'rojo':statuses.includes('amarillo')?'amarillo':'verde';
+    } else { st=getStatus(or.id); }
+    const dc = st==='verde'?'g':st==='rojo'?'r':'o';
+    const activeClass = isActive?(isMx?'mx-active':'active'):'';
+    const dotStyle = isMx&&!isActive ? 'background:var(--blue)' : '';
+    return `<button class="or-tab ${activeClass}" onclick="switchOR('${or.id}')">
+      <span class="dot ${isActive?'':dc}" style="${dotStyle}"></span>${or.flag} ${or.name}
+    </button>`;
+  }).join('');
+
+  // BP tabs (México)
+  const bpWrap = document.getElementById('bpWrap');
+  if(currentOR==='mexico'){
+    bpWrap.classList.add('show');
+    document.getElementById('bpTabs').innerHTML = MEXICO_BPS.map(bp=>{
+      const st=getStatus(bp.id);
+      const em=st==='verde'?'🟢':st==='rojo'?'🔴':'🟡';
+      return `<button class="bp-tab ${currentBP===bp.id?'active':''}" onclick="switchBP('${bp.id}')">
+        ${em} ${bp.role} · ${bp.name}
+      </button>`;
+    }).join('');
+  } else { bpWrap.classList.remove('show'); }
+}
+
+function switchOR(id){ currentOR=id; if(id==='mexico') currentBP='mx_juanpa'; renderTabs(); renderContent(); }
+function switchBP(id){ currentBP=id; renderTabs(); renderContent(); }
+function changeWeek(dir){ weekOffset+=dir; document.getElementById('weekLabel').textContent=wLabel(weekOffset); loadAll(); }
+
+// ── RENDER CONTENT ────────────────────────────────────────
+function renderContent(){
+  const entityId = currentOR==='mexico' ? currentBP : currentOR;
+  const wk = wKey(weekOffset);
+  const d  = getLocal(entityId, wk);
+  const isMx = currentOR==='mexico';
+
+  const entity = isMx
+    ? MEXICO_BPS.find(b=>b.id===entityId)
+    : ORS.find(o=>o.id===entityId);
+
+  // Badge
+  const badge = isMx
+    ? `<div class="ctx-badge mx">🇲🇽 México · <strong>${entity.role}</strong> · ${entity.name}</div>`
+    : `<div class="ctx-badge or">${ORS.find(o=>o.id===currentOR)?.flag} Oficina Regional · ${entity?.name||''}</div>`;
+
+  // History
+  const eData = remoteData[entityId]||{};
+  const past = Object.keys(eData).filter(k=>k<wk).sort().reverse().slice(0,3);
+  const histHTML = past.map(pw=>{
+    const pd=eData[pw]; const comps=(pd.compromisos||[]).filter(c=>c.text);
+    return `<div class="hw">
+      <div class="hw-label">${pw}</div>
+      ${comps.map(c=>`<div class="hc"><span class="${c.done?'tick':'cross'}">${c.done?'✓':'✗'}</span>${c.text}</div>`).join('')||'<div style="font-size:12px;color:var(--text-dimmer)">Sin compromisos registrados</div>'}
+    </div>`;
+  }).join('');
+
+  document.getElementById('mainContent').innerHTML = `
+    ${badge}
+    <div class="main-grid">
+      <div class="card">
+        <div class="clabel">📊 KPIs semana</div>
+        <div class="kpi-grid">
+          <div class="kpi-item"><label>Reuniones</label><input type="number" placeholder="0" value="${d.kpis.reuniones}" oninput="ukpi('reuniones',this.value,'${entityId}')" min="0"></div>
+          <div class="kpi-item"><label>Cotizaciones</label><input type="number" placeholder="0" value="${d.kpis.cotizaciones}" oninput="ukpi('cotizaciones',this.value,'${entityId}')" min="0"></div>
+          <div class="kpi-item"><label>Empresas</label><input type="number" placeholder="0" value="${d.kpis.empresas}" oninput="ukpi('empresas',this.value,'${entityId}')" min="0"></div>
+          <div class="kpi-item" style="grid-column:1/3"><label>Forecast USD</label><input class="money" type="text" placeholder="$ 0" value="${d.kpis.forecast}" oninput="ukpi('forecast',this.value,'${entityId}')"></div>
+          <div class="kpi-item"><label>Mails</label><input type="number" placeholder="0" value="${d.kpis.mails}" oninput="ukpi('mails',this.value,'${entityId}')" min="0"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="clabel">✅ Compromisos</div>
+        <div class="clist">
+          ${d.compromisos.map((c,i)=>`
+            <div class="citem">
+              <input type="checkbox" class="ccheck" ${c.done?'checked':''} onchange="udone(${i},this.checked,'${entityId}')">
+              <input type="text" class="ctext ${c.done?'done':''}" placeholder="Ej: Visitar cliente el martes..." value="${c.text}" oninput="utext(${i},this.value,'${entityId}')" id="ci${i}">
+            </div>`).join('')}
+        </div>
+        <button class="add-btn" onclick="addC('${entityId}')">+ agregar compromiso</button>
+      </div>
+
+      <div class="card card-full">
+        <div class="clabel">📝 Notas del meet</div>
+        <textarea class="notes" placeholder="Proyectos trabados, obstáculos, contexto importante..." oninput="unotes(this.value,'${entityId}')">${d.notas}</textarea>
+      </div>
+    </div>
+
+    <div class="bottom-bar">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text-dimmer);letter-spacing:1px;text-transform:uppercase">Estado:</span>
+        <button class="sbadge verde ${d.status==='verde'?'on':''}" onclick="ust('verde','${entityId}')">🟢 En línea</button>
+        <button class="sbadge amarillo ${d.status==='amarillo'?'on':''}" onclick="ust('amarillo','${entityId}')">🟡 Atención</button>
+        <button class="sbadge rojo ${d.status==='rojo'?'on':''}" onclick="ust('rojo','${entityId}')">🔴 Crítico</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px">
+        <span class="flash" id="flash">guardado ✓</span>
+        <button class="save-btn" onclick="doSave()">Guardar</button>
+      </div>
+    </div>
+
+    ${past.length>0?`
+    <button class="hist-btn" onclick="toggleHist()">▸ <span id="histLbl">ver historial de semanas anteriores</span></button>
+    <div class="hist-panel" id="histPanel">${histHTML}</div>`:''}
+  `;
+}
+
+function toggleHist(){
+  const p=document.getElementById('histPanel'),l=document.getElementById('histLbl');
+  p.classList.toggle('open');l.textContent=p.classList.contains('open')?'ocultar historial':'ver historial de semanas anteriores';
+}
+
+// ── MUTATIONS ─────────────────────────────────────────────
+function ukpi(k,v,id){ getLocal(id,wKey(weekOffset)).kpis[k]=v; }
+function utext(i,v,id){ const d=getLocal(id,wKey(weekOffset));d.compromisos[i].text=v;const el=document.getElementById(`ci${i}`);if(el)el.className=`ctext ${d.compromisos[i].done?'done':''}`; }
+function udone(i,ch,id){ const d=getLocal(id,wKey(weekOffset));d.compromisos[i].done=ch;const el=document.getElementById(`ci${i}`);if(el)el.className=`ctext ${ch?'done':''}`; }
+function addC(id){ getLocal(id,wKey(weekOffset)).compromisos.push({text:'',done:false});renderContent();const all=document.querySelectorAll('.ctext');if(all.length)all[all.length-1].focus(); }
+function unotes(v,id){ getLocal(id,wKey(weekOffset)).notas=v; }
+function ust(st,id){ getLocal(id,wKey(weekOffset)).status=st;renderTabs();renderContent(); }
+
+// ── INIT ──────────────────────────────────────────────────
+document.getElementById('weekLabel').textContent = wLabel(0);
+loadAll();
+
+// Auto-refresh cada 60 segundos
+setInterval(()=>{ loadAll(); }, 60000);
+</script>
+</body>
+</html>
