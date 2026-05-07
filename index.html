@@ -7,45 +7,35 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap');
 :root{
-  --bg:#0f0f0f;--surface:#1a1a1a;--surface2:#242424;--surface3:#2a2a2a;
-  --border:#2e2e2e;--accent:#c8f135;--text:#f0f0f0;--text-dim:#888;--text-dimmer:#555;
-  --red:#ff4d4d;--green:#c8f135;--orange:#f1a135;--blue:#3b82f6;--purple:#a78bfa;
+  --bg:#0f0f0f;--surface:#1a1a1a;--surface2:#242424;--border:#2e2e2e;
+  --accent:#FF6B00;--accent-dim:rgba(255,107,0,0.12);--accent-border:rgba(255,107,0,0.3);
+  --text:#f0f0f0;--text-dim:#888;--text-dimmer:#555;
+  --red:#ff4d4d;--green:#4ade80;--blue:#3b82f6;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:20px;}
-
-/* OVERLAY */
 .overlay{position:fixed;inset:0;background:rgba(15,15,15,0.92);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:300;gap:12px;}
 .overlay.hidden{display:none;}
 .spinner{width:28px;height:28px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg)}}
 .overlay-text{font-family:'DM Mono',monospace;font-size:11px;color:var(--text-dim);letter-spacing:1px;}
-
-/* HEADER */
 header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:12px;}
 header h1{font-size:20px;font-weight:800;letter-spacing:-0.5px;}
 header h1 span{color:var(--accent);}
-.header-meta{font-family:'DM Mono',monospace;font-size:10px;color:var(--text-dimmer);margin-top:3px;letter-spacing:0.5px;}
-
-/* SYNC */
+.header-meta{font-family:'DM Mono',monospace;font-size:10px;color:var(--text-dimmer);margin-top:3px;}
 .sync-row{display:flex;align-items:center;gap:8px;margin-bottom:16px;}
 .sdot{width:6px;height:6px;border-radius:50%;}
-.sdot.ok{background:var(--green);} .sdot.err{background:var(--red);} .sdot.loading{background:var(--orange);animation:pulse 1s infinite;}
+.sdot.ok{background:var(--green);}.sdot.err{background:var(--red);}.sdot.loading{background:var(--accent);animation:pulse 1s infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
-.stext{font-family:'DM Mono',monospace;font-size:10px;color:var(--text-dimmer);letter-spacing:0.5px;}
+.stext{font-family:'DM Mono',monospace;font-size:10px;color:var(--text-dimmer);}
 .refresh-btn{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;background:none;border:1px solid var(--border);color:var(--text-dimmer);border-radius:5px;padding:3px 10px;cursor:pointer;transition:all 0.15s;margin-left:8px;}
 .refresh-btn:hover{border-color:var(--accent);color:var(--accent);}
-
-/* OR TABS */
 .or-tabs{display:flex;gap:5px;margin-bottom:6px;flex-wrap:wrap;}
 .or-tab{font-family:'Syne',sans-serif;font-weight:700;font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:6px 14px;border-radius:7px;border:1px solid var(--border);background:var(--surface);color:var(--text-dim);cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:5px;}
 .or-tab:hover{border-color:var(--accent);color:var(--accent);}
-.or-tab.active{background:var(--accent);color:var(--bg);border-color:var(--accent);}
+.or-tab.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.or-tab.global-active{background:#6366f1;color:#fff;border-color:#6366f1;}
 .or-tab.mx-active{background:var(--blue);color:#fff;border-color:var(--blue);}
-.dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
-.dot.g{background:var(--green);}.dot.o{background:var(--orange);}.dot.r{background:var(--red);}.dot.b{background:var(--blue);}
-
-/* BP TABS */
 .bp-wrap{display:none;margin-bottom:16px;padding:12px 14px;background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.2);border-radius:10px;}
 .bp-wrap.show{display:block;}
 .bp-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:#93c5fd;margin-bottom:8px;opacity:0.8;}
@@ -53,34 +43,42 @@ header h1 span{color:var(--accent);}
 .bp-tab{font-family:'Syne',sans-serif;font-weight:600;font-size:10px;padding:5px 13px;border-radius:6px;border:1px solid rgba(59,130,246,0.3);background:transparent;color:#93c5fd;cursor:pointer;transition:all 0.15s;}
 .bp-tab:hover{border-color:var(--blue);color:#fff;}
 .bp-tab.active{background:var(--blue);color:#fff;border-color:var(--blue);}
-
-/* SECTION TABS */
-.section-tabs{display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:0;}
-.stab{font-family:'Syne',sans-serif;font-weight:700;font-size:11px;letter-spacing:0.5px;padding:8px 18px;border:none;background:none;color:var(--text-dim);cursor:pointer;transition:all 0.15s;border-bottom:2px solid transparent;margin-bottom:-1px;}
-.stab:hover{color:var(--text);}
-.stab.active{color:var(--accent);border-bottom-color:var(--accent);}
-
-/* KPI SUMMARY */
+.ctx{display:inline-flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.8px;padding:4px 12px;border-radius:20px;margin-bottom:16px;}
+.ctx.or{background:var(--accent-dim);border:1px solid var(--accent-border);color:var(--accent);}
+.ctx.mx{background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);color:#93c5fd;}
+.section-divider{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-dim);margin:24px 0 14px;display:flex;align-items:center;gap:8px;}
+.section-divider::after{content:'';flex:1;height:1px;background:var(--border);}
+/* FUNNEL */
+.funnel-bars{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;}
+.funnel-row{display:flex;align-items:center;gap:10px;}
+.funnel-row-label{font-family:'Syne',sans-serif;font-size:11px;color:var(--text-dim);width:180px;flex-shrink:0;text-align:right;}
+.funnel-bar-wrap{flex:1;height:30px;background:var(--surface2);border-radius:5px;overflow:hidden;}
+.funnel-bar{height:100%;border-radius:5px;transition:width 0.6s ease;display:flex;align-items:center;padding-left:10px;min-width:2px;}
+.funnel-bar-label{font-family:'DM Mono',monospace;font-size:10px;color:#fff;white-space:nowrap;text-shadow:0 1px 2px rgba(0,0,0,0.5);}
+.funnel-count{font-family:'DM Mono',monospace;font-size:13px;font-weight:500;width:28px;text-align:right;flex-shrink:0;}
+.bottom-states{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;}
+.bstate-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;}
+.bstate-label{font-family:'Syne',sans-serif;font-size:12px;color:var(--text-dim);}
+.bstate-sub{font-family:'DM Mono',monospace;font-size:10px;color:var(--text-dimmer);margin-top:2px;}
+.bstate-val{font-family:'DM Mono',monospace;font-size:22px;font-weight:500;}
+/* KPI */
 .kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px;}
 .kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;}
 .kpi-card label{display:block;font-family:'DM Mono',monospace;font-size:8px;color:var(--text-dimmer);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;}
-.kpi-card .kval{font-family:'DM Mono',monospace;font-size:20px;font-weight:500;color:var(--accent);}
-.kpi-card .kval.small{font-size:14px;}
-
-/* PIPELINE TABLE */
+.kval{font-family:'DM Mono',monospace;font-size:20px;font-weight:500;color:var(--accent);}
+.kval.small{font-size:13px;}
+/* TABLE */
 .table-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--border);}
-table{width:100%;border-collapse:collapse;min-width:800px;}
+table{width:100%;border-collapse:collapse;min-width:780px;}
 thead tr{background:var(--surface2);}
 th{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text-dimmer);padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;}
 tbody tr{border-bottom:1px solid var(--border);transition:background 0.1s;}
 tbody tr:last-child{border-bottom:none;}
 tbody tr:hover{background:var(--surface2);}
-td{padding:8px 10px;vertical-align:middle;}
-td input[type=text], td input[type=date], td input[type=number]{background:transparent;border:none;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;width:100%;min-width:60px;}
+td{padding:7px 10px;vertical-align:middle;}
+td input[type=text],td input[type=date],td input[type=number]{background:transparent;border:none;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;width:100%;min-width:50px;}
 td input::placeholder{color:var(--text-dimmer);}
 td input[type=number]{color:var(--accent);font-family:'DM Mono',monospace;}
-
-/* STATUS SELECT */
 .status-sel{font-family:'Syne',sans-serif;font-size:11px;font-weight:600;border:none;border-radius:20px;padding:3px 10px;cursor:pointer;outline:none;appearance:none;text-align:center;width:100%;}
 .s0{background:rgba(99,102,241,0.15);color:#818cf8;}
 .s1{background:rgba(59,130,246,0.15);color:#60a5fa;}
@@ -88,443 +86,292 @@ td input[type=number]{color:var(--accent);font-family:'DM Mono',monospace;}
 .s3{background:rgba(249,115,22,0.15);color:#fb923c;}
 .s4{background:rgba(239,68,68,0.15);color:#f87171;}
 .s5{background:rgba(236,72,153,0.15);color:#f472b6;}
-.s6{background:rgba(34,197,94,0.15);color:#4ade80;}
+.s6{background:rgba(74,222,128,0.15);color:#4ade80;}
 .s7{background:rgba(100,116,139,0.15);color:#94a3b8;}
 .s8{background:rgba(255,77,77,0.1);color:#ff6b6b;}
-
+.prod-sel{background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;padding:3px 8px;outline:none;cursor:pointer;width:100%;}
+.prod-sel:focus{border-color:var(--accent);}
 .del-btn{background:none;border:none;color:var(--text-dimmer);cursor:pointer;font-size:14px;padding:2px 6px;border-radius:4px;transition:all 0.15s;line-height:1;}
 .del-btn:hover{color:var(--red);background:rgba(255,77,77,0.1);}
-
 .add-row-btn{display:flex;align-items:center;gap:6px;margin-top:10px;background:transparent;border:1px dashed var(--border);border-radius:8px;padding:9px 14px;color:var(--text-dimmer);font-family:'Syne',sans-serif;font-size:12px;cursor:pointer;width:100%;transition:all 0.15s;}
 .add-row-btn:hover{border-color:var(--accent);color:var(--accent);}
-
 /* TASKS */
 .tasks-list{display:flex;flex-direction:column;gap:8px;}
-.task-item{display:grid;grid-template-columns:24px 1fr 140px 160px 32px;gap:8px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px;transition:all 0.15s;}
-.task-item:hover{border-color:var(--border);}
+.task-item{display:grid;grid-template-columns:24px 1fr 140px 160px 32px;gap:8px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px;}
 .tcheck{width:18px;height:18px;border-radius:5px;border:2px solid var(--border);cursor:pointer;appearance:none;flex-shrink:0;transition:all 0.15s;position:relative;}
 .tcheck:checked{background:var(--accent);border-color:var(--accent);}
-.tcheck:checked::after{content:'✓';position:absolute;top:-2px;left:2px;font-size:13px;color:var(--bg);font-weight:700;}
+.tcheck:checked::after{content:'✓';position:absolute;top:-2px;left:2px;font-size:13px;color:#fff;font-weight:700;}
 .tinput{background:transparent;border:none;color:var(--text);font-family:'Syne',sans-serif;font-size:13px;outline:none;width:100%;}
 .tinput::placeholder{color:var(--text-dimmer);}
 .tinput.done{text-decoration:line-through;color:var(--text-dim);}
 .tdate{background:transparent;border:none;color:var(--text-dim);font-family:'DM Mono',monospace;font-size:11px;outline:none;width:100%;}
 .tresp{background:transparent;border:none;color:var(--text-dim);font-family:'Syne',sans-serif;font-size:12px;outline:none;width:100%;}
 .tresp::placeholder,.tdate::placeholder{color:var(--text-dimmer);}
-
-/* SAVE BAR */
-.save-bar{display:flex;justify-content:flex-end;align-items:center;gap:14px;margin-top:16px;padding-top:14px;border-top:1px solid var(--border);}
-.save-btn{font-family:'Syne',sans-serif;font-weight:700;font-size:12px;background:var(--accent);color:var(--bg);border:none;border-radius:8px;padding:9px 24px;cursor:pointer;transition:all 0.15s;}
+/* SAVE */
+.save-bar{display:flex;justify-content:flex-end;align-items:center;gap:14px;margin-top:20px;padding-top:14px;border-top:1px solid var(--border);}
+.save-btn{font-family:'Syne',sans-serif;font-weight:700;font-size:12px;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:9px 24px;cursor:pointer;transition:all 0.15s;}
 .save-btn:hover{opacity:0.85;transform:translateY(-1px);}
 .flash{font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);opacity:0;transition:opacity 0.3s;}
 .flash.show{opacity:1;}
-
-/* CTX BADGE */
-.ctx{display:inline-flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.8px;padding:4px 12px;border-radius:20px;margin-bottom:14px;}
-.ctx.or{background:rgba(200,241,53,0.07);border:1px solid rgba(200,241,53,0.2);color:var(--accent);}
-.ctx.mx{background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);color:#93c5fd;}
-
-/* GLOBAL VIEW */
-.global-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
-.global-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;cursor:pointer;transition:all 0.15s;}
-.global-card:hover{border-color:var(--accent);}
+/* GLOBAL */
+.global-kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;}
+.global-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.global-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;cursor:pointer;transition:all 0.2s;}
+.global-card:hover{border-color:var(--accent);transform:translateY(-2px);}
 .gc-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
 .gc-name{font-weight:700;font-size:13px;}
-.gc-badge{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:10px;}
-.gc-badge.verde{color:var(--green);background:rgba(200,241,53,0.1);}
-.gc-badge.amarillo{color:var(--orange);background:rgba(241,161,53,0.1);}
-.gc-badge.rojo{color:var(--red);background:rgba(255,77,77,0.1);}
-.gc-kpi{font-family:'DM Mono',monospace;font-size:11px;color:var(--text-dim);display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border);}
-.gc-kpi:last-child{border:none;}
-.gc-kpi span{color:var(--accent);}
-
-/* FUNNEL LEGEND */
-.funnel-legend{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
-.fl-item{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.5px;padding:3px 8px;border-radius:10px;cursor:pointer;transition:opacity 0.15s;}
-.fl-item:hover{opacity:0.7;}
-
-@media(max-width:640px){.kpi-row{grid-template-columns:repeat(3,1fr);}.global-grid{grid-template-columns:1fr;}.task-item{grid-template-columns:24px 1fr 32px;}}
+.gc-opp{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;padding:3px 8px;border-radius:10px;background:var(--accent-dim);color:var(--accent);border:1px solid var(--accent-border);}
+.gc-bar-row{display:flex;align-items:center;gap:6px;margin-bottom:4px;}
+.gc-bar-wrap{flex:1;height:6px;background:var(--surface2);border-radius:3px;overflow:hidden;}
+.gc-bar{height:100%;border-radius:3px;transition:width 0.5s ease;}
+.gc-bar-label{font-family:'DM Mono',monospace;font-size:8px;color:var(--text-dimmer);width:75px;text-align:right;flex-shrink:0;}
+.gc-bar-count{font-family:'DM Mono',monospace;font-size:9px;width:16px;text-align:right;flex-shrink:0;}
+.gc-footer{font-family:'DM Mono',monospace;font-size:12px;color:var(--accent);padding-top:10px;border-top:1px solid var(--border);margin-top:8px;}
+.gc-footer span{color:var(--text-dimmer);font-size:9px;display:block;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px;}
+@media(max-width:700px){.kpi-row,.global-kpi-row{grid-template-columns:repeat(2,1fr);}.global-grid{grid-template-columns:1fr;}.task-item{grid-template-columns:24px 1fr 32px;}.funnel-row-label{width:110px;font-size:10px;}}
 </style>
 </head>
 <body>
-
 <script>
-// ⚠️ REEMPLAZÁ CON TU URL
-const SCRIPT_URL = 'https://script.google.com/a/macros/softguard.com/s/AKfycbwigXKax-dwPOHHI9MeTu9bRECVbW8u7nqtilVM0SNk-xQ0wUeTM1XuN9jTFbGqKtIe/exec';
+const SCRIPT_URL='https://script.google.com/a/macros/softguard.com/s/AKfycbwigXKax-dwPOHHI9MeTu9bRECVbW8u7nqtilVM0SNk-xQ0wUeTM1XuN9jTFbGqKtIe/exec';
 </script>
-
-<div class="overlay" id="overlay">
-  <div class="spinner"></div>
-  <div class="overlay-text" id="overlayText">cargando datos...</div>
-</div>
-
-<header>
-  <div>
-    <h1>OR <span>Pipeline Tracker</span></h1>
-    <div class="header-meta">SoftGuard · Gerencia Comercial HQ</div>
-  </div>
-</header>
-
-<div class="sync-row">
-  <div class="sdot" id="sdot"></div>
-  <span class="stext" id="stext">conectando...</span>
-  <button class="refresh-btn" onclick="loadAll()">↻ Actualizar</button>
-</div>
-
+<div class="overlay" id="overlay"><div class="spinner"></div><div class="overlay-text" id="overlayText">cargando datos...</div></div>
+<header><div><h1>OR <span>Pipeline Tracker</span></h1><div class="header-meta">SoftGuard · Gerencia Comercial HQ</div></div></header>
+<div class="sync-row"><div class="sdot" id="sdot"></div><span class="stext" id="stext">conectando...</span><button class="refresh-btn" onclick="loadAll()">↻ Actualizar</button></div>
 <div class="or-tabs" id="orTabs"></div>
-<div class="bp-wrap" id="bpWrap">
-  <div class="bp-label">🇲🇽 México · Business Partners</div>
-  <div class="bp-tabs" id="bpTabs"></div>
-</div>
-
-<div class="section-tabs" id="sectionTabs">
-  <button class="stab active" onclick="switchSection('pipeline')">📊 Pipeline</button>
-  <button class="stab" onclick="switchSection('tasks')">✅ Tareas</button>
-  <button class="stab" onclick="switchSection('global')">🌎 Vista Global</button>
-</div>
-
+<div class="bp-wrap" id="bpWrap"><div class="bp-label">🇲🇽 México · Business Partners</div><div class="bp-tabs" id="bpTabs"></div></div>
 <div id="mainContent"></div>
-
 <script>
-// ── CONFIG ────────────────────────────────────────────────
-const ORS = [
-  {id:'peru',    name:'Perú',     flag:'🇵🇪',type:'or'},
-  {id:'chile',   name:'Chile',    flag:'🇨🇱',type:'or'},
-  {id:'colombia',name:'Colombia', flag:'🇨🇴',type:'or'},
+const ORS=[
+  {id:'global',   name:'Global',   flag:'🌎',type:'global'},
+  {id:'peru',     name:'Perú',     flag:'🇵🇪',type:'or'},
+  {id:'chile',    name:'Chile',    flag:'🇨🇱',type:'or'},
+  {id:'colombia', name:'Colombia', flag:'🇨🇴',type:'or'},
   {id:'venezuela',name:'Venezuela',flag:'🇻🇪',type:'or'},
-  {id:'panama',  name:'Panamá',   flag:'🇵🇦',type:'or'},
-  {id:'espana',  name:'España',   flag:'🇪🇸',type:'or'},
-  {id:'mexico',  name:'México',   flag:'🇲🇽',type:'mexico'},
+  {id:'panama',   name:'Panamá',   flag:'🇵🇦',type:'or'},
+  {id:'espana',   name:'España',   flag:'🇪🇸',type:'or'},
+  {id:'brasil',   name:'Brasil',   flag:'🇧🇷',type:'or'},
+  {id:'mexico',   name:'México',   flag:'🇲🇽',type:'mexico'},
 ];
-const MEXICO_BPS = [
+const MEXICO_BPS=[
   {id:'mx_juanpa',name:'Juan Pablo Ávila',role:'BP'},
-  {id:'mx_syscom',name:'SYSCOM',          role:'Canal'},
-  {id:'mx_carlos',name:'Carlos Martínez', role:'Rep'},
+  {id:'mx_syscom',name:'SYSCOM',role:'Canal'},
+  {id:'mx_carlos',name:'Carlos Martínez',role:'Rep'},
 ];
-const ESTADOS = [
-  {val:'prospecto',  label:'🔵 Prospecto identificado', cls:'s0'},
-  {val:'contacto',   label:'🟣 Contacto iniciado',      cls:'s1'},
-  {val:'interes',    label:'🟡 Interés confirmado',     cls:'s2'},
-  {val:'reunion',    label:'🟠 Reunión / Demo',         cls:'s3'},
-  {val:'propuesta',  label:'🔶 Propuesta enviada',      cls:'s4'},
-  {val:'negociacion',label:'🔴 En negociación',         cls:'s5'},
-  {val:'cerrada',    label:'✅ Venta cerrada',          cls:'s6'},
-  {val:'standby',    label:'⏸️ Stand-by',               cls:'s7'},
-  {val:'perdida',    label:'❌ Venta perdida',          cls:'s8'},
+const FUNNEL=[
+  {val:'prospecto', label:'Prospecto identificado',color:'#6366f1'},
+  {val:'contacto',  label:'Contacto iniciado',     color:'#3b82f6'},
+  {val:'interes',   label:'Interés confirmado',    color:'#eab308'},
+  {val:'reunion',   label:'Reunión / Demo',        color:'#f97316'},
+  {val:'propuesta', label:'Propuesta enviada',     color:'#ef4444'},
+  {val:'negociacion',label:'En negociación',       color:'#ec4899'},
 ];
+const FINAL=[
+  {val:'cerrada',label:'✅ Venta cerrada',color:'#4ade80'},
+  {val:'standby',label:'⏸️ Stand-by',    color:'#94a3b8'},
+  {val:'perdida',label:'❌ Venta perdida',color:'#ff4d4d'},
+];
+const ALL_ESTADOS=[...FUNNEL,...FINAL];
+const ECLS={prospecto:'s0',contacto:'s1',interes:'s2',reunion:'s3',propuesta:'s4',negociacion:'s5',cerrada:'s6',standby:'s7',perdida:'s8'};
 
-let currentOR = 'peru';
-let currentBP = 'mx_juanpa';
-let currentSection = 'pipeline';
-let remoteData = {pipeline:{}, tasks:{}};
+let currentOR='global',currentBP='mx_juanpa';
+let RD={pipeline:{},tasks:{}};
 
-// ── JSONP LOAD (evita CORS) ───────────────────────────────
-function loadAll() {
-  syncStatus('loading','sincronizando...');
-  overlay(true,'cargando datos...');
-  const cbName = 'sgCb_' + Date.now();
-  const script = document.createElement('script');
-  window[cbName] = function(res) {
-    delete window[cbName];
-    script.remove();
-    overlay(false);
-    if(res.success){
-      remoteData.pipeline = res.pipeline || {};
-      remoteData.tasks    = res.tasks    || {};
-      syncStatus('ok','sincronizado · '+now());
-    } else {
-      syncStatus('err','error al cargar');
-    }
-    renderTabs();
-    renderContent();
+function loadAll(){
+  syncS('loading','sincronizando...');overlay(true,'cargando datos...');
+  const cb='sgCb_'+Date.now(),s=document.createElement('script');
+  window[cb]=function(res){
+    delete window[cb];s.remove();overlay(false);
+    if(res.success){RD.pipeline=res.pipeline||{};RD.tasks=res.tasks||{};syncS('ok','sincronizado · '+now());}
+    else syncS('err','error al cargar');
+    renderTabs();renderContent();
   };
-  script.src = `${SCRIPT_URL}?action=loadAll&callback=${cbName}&t=${Date.now()}`;
-  script.onerror = () => {
-    delete window[cbName];
-    overlay(false);
-    syncStatus('err','sin conexión — revisar URL del script');
-    renderTabs();
-    renderContent();
-  };
-  document.head.appendChild(script);
+  s.onerror=()=>{delete window[cb];overlay(false);syncS('err','sin conexión');renderTabs();renderContent();};
+  s.src=SCRIPT_URL+'?action=loadAll&callback='+cb+'&t='+Date.now();
+  document.head.appendChild(s);
 }
 
-// ── POST (guardar) ────────────────────────────────────────
-async function apiPost(body) {
-  const res = await fetch(SCRIPT_URL, {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body: JSON.stringify(body)
-  });
-  return res.json();
+async function doSave(){
+  const eid=currentOR==='mexico'?currentBP:currentOR;
+  syncS('loading','guardando...');
+  try{
+    await fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'savePipeline',entityId:eid,rows:RD.pipeline[eid]||[]})});
+    await fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'saveTasks',entityId:eid,tasks:RD.tasks[eid]||[]})});
+    syncS('ok','guardado · '+now());flash();
+  }catch(e){syncS('err','error al guardar');}
 }
 
-// ── SAVE ──────────────────────────────────────────────────
-async function doSave() {
-  const entityId = currentOR==='mexico' ? currentBP : currentOR;
-  syncStatus('loading','guardando...');
-  try {
-    const pipeline = remoteData.pipeline[entityId] || [];
-    const tasks    = remoteData.tasks[entityId]    || [];
-    await apiPost({action:'savePipeline', entityId, rows: pipeline});
-    await apiPost({action:'saveTasks',    entityId, tasks});
-    syncStatus('ok','guardado · '+now());
-    flash();
-  } catch(e) {
-    syncStatus('err','error al guardar');
-  }
-}
-
-// ── UI HELPERS ────────────────────────────────────────────
-function overlay(show,msg=''){
-  document.getElementById('overlay').classList.toggle('hidden',!show);
-  if(msg) document.getElementById('overlayText').textContent=msg;
-}
-function syncStatus(state,msg){
-  const d=document.getElementById('sdot'),t=document.getElementById('stext');
-  d.className='sdot '+(state==='ok'?'ok':state==='err'?'err':'loading');
-  t.textContent=msg;
-}
+function overlay(show,msg=''){document.getElementById('overlay').classList.toggle('hidden',!show);if(msg)document.getElementById('overlayText').textContent=msg;}
+function syncS(s,m){const d=document.getElementById('sdot'),t=document.getElementById('stext');d.className='sdot '+(s==='ok'?'ok':s==='err'?'err':'loading');t.textContent=m;}
 function now(){return new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});}
-function flash(){
-  const f=document.getElementById('flash');
-  if(f){f.classList.add('show');setTimeout(()=>f.classList.remove('show'),1800);}
-}
+function flash(){const f=document.getElementById('flash');if(f){f.classList.add('show');setTimeout(()=>f.classList.remove('show'),1800);}}
 function uid(){return Math.random().toString(36).substr(2,8);}
+function fmtUSD(n){return '$'+Number(n||0).toLocaleString('es-AR');}
+function parseMonto(v){return parseFloat((v||'0').toString().replace(/[^0-9.]/g,''))||0;}
 
-// ── TABS ──────────────────────────────────────────────────
 function renderTabs(){
-  document.getElementById('orTabs').innerHTML = ORS.map(or=>{
-    const isMx=or.type==='mexico';
-    const isAct=currentOR===or.id;
-    const activeClass=isAct?(isMx?'mx-active':'active'):'';
-    const dotStyle=isMx&&!isAct?'background:var(--blue)':'';
-    return `<button class="or-tab ${activeClass}" onclick="switchOR('${or.id}')">
-      <span class="dot o" style="${dotStyle}"></span>${or.flag} ${or.name}
-    </button>`;
+  document.getElementById('orTabs').innerHTML=ORS.map(or=>{
+    const a=currentOR===or.id;
+    const cls=a?(or.type==='global'?'global-active':or.type==='mexico'?'mx-active':'active'):'';
+    return `<button class="or-tab ${cls}" onclick="switchOR('${or.id}')">${or.flag} ${or.name}</button>`;
   }).join('');
-
-  const bpWrap=document.getElementById('bpWrap');
+  const bw=document.getElementById('bpWrap');
   if(currentOR==='mexico'){
-    bpWrap.classList.add('show');
-    document.getElementById('bpTabs').innerHTML=MEXICO_BPS.map(bp=>`
-      <button class="bp-tab ${currentBP===bp.id?'active':''}" onclick="switchBP('${bp.id}')">
-        ${bp.role} · ${bp.name}
-      </button>`).join('');
-  } else { bpWrap.classList.remove('show'); }
+    bw.classList.add('show');
+    document.getElementById('bpTabs').innerHTML=MEXICO_BPS.map(b=>`<button class="bp-tab ${currentBP===b.id?'active':''}" onclick="switchBP('${b.id}')">${b.role} · ${b.name}</button>`).join('');
+  }else bw.classList.remove('show');
 }
-
 function switchOR(id){currentOR=id;if(id==='mexico')currentBP='mx_juanpa';renderTabs();renderContent();}
 function switchBP(id){currentBP=id;renderTabs();renderContent();}
-function switchSection(s){
-  currentSection=s;
-  document.querySelectorAll('.stab').forEach((t,i)=>{
-    t.classList.toggle('active',['pipeline','tasks','global'][i]===s);
-  });
-  renderContent();
-}
 
-// ── RENDER ────────────────────────────────────────────────
 function renderContent(){
-  if(currentSection==='global'){ renderGlobal(); return; }
-  const entityId=currentOR==='mexico'?currentBP:currentOR;
+  if(currentOR==='global'){renderGlobal();return;}
+  const eid=currentOR==='mexico'?currentBP:currentOR;
   const isMx=currentOR==='mexico';
-  const entity=isMx?MEXICO_BPS.find(b=>b.id===entityId):ORS.find(o=>o.id===entityId);
-  const badgeClass=isMx?'mx':'or';
+  const entity=isMx?MEXICO_BPS.find(b=>b.id===eid):ORS.find(o=>o.id===eid);
   const badgeText=isMx?`🇲🇽 México · ${entity.role} · ${entity.name}`:`${ORS.find(o=>o.id===currentOR)?.flag} Oficina Regional · ${entity?.name||''}`;
-
-  let html=`<div class="ctx ${badgeClass}">${badgeText}</div>`;
-  if(currentSection==='pipeline') html+=renderPipeline(entityId);
-  if(currentSection==='tasks')    html+=renderTasks(entityId);
-  html+=`<div class="save-bar"><span class="flash" id="flash">guardado ✓</span><button class="save-btn" onclick="doSave()">Guardar</button></div>`;
-  document.getElementById('mainContent').innerHTML=html;
-}
-
-// ── PIPELINE ──────────────────────────────────────────────
-function getPipeline(entityId){
-  if(!remoteData.pipeline[entityId]) remoteData.pipeline[entityId]=[];
-  return remoteData.pipeline[entityId];
-}
-
-function renderPipeline(entityId){
-  const rows=getPipeline(entityId);
-  // KPIs
-  const total=rows.length;
-  const activos=rows.filter(r=>r.estado&&r.estado!=='cerrada'&&r.estado!=='perdida'&&r.estado!=='standby').length;
-  const cerradas=rows.filter(r=>r.estado==='cerrada').length;
-  const monto=rows.filter(r=>r.estado!=='perdida').reduce((a,r)=>a+(parseFloat((r.monto||'0').replace(/[^0-9.]/g,''))||0),0);
-  const negociacion=rows.filter(r=>r.estado==='negociacion'||r.estado==='propuesta').length;
-
-  return `
-    <div class="kpi-row">
-      <div class="kpi-card"><label>Total oportunidades</label><div class="kval">${total}</div></div>
-      <div class="kpi-card"><label>En proceso</label><div class="kval">${activos}</div></div>
-      <div class="kpi-card"><label>En negociación</label><div class="kval">${negociacion}</div></div>
-      <div class="kpi-card"><label>Cerradas</label><div class="kval" style="color:var(--green)">${cerradas}</div></div>
-      <div class="kpi-card"><label>Forecast USD</label><div class="kval small">$${monto.toLocaleString('es-AR')}</div></div>
-    </div>
-    <div class="funnel-legend">
-      ${ESTADOS.map(e=>`<span class="fl-item ${e.cls}" style="font-size:9px">${e.label}</span>`).join('')}
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead><tr>
-          <th>Empresa</th><th>Producto</th><th>Monto USD</th><th>Fecha cierre est.</th><th style="min-width:180px">Estado</th><th>Comentarios</th><th></th>
-        </tr></thead>
-        <tbody id="pipelineBody">
-          ${rows.map((r,i)=>renderPipelineRow(r,i,entityId)).join('')}
-        </tbody>
-      </table>
-    </div>
-    <button class="add-row-btn" onclick="addPipelineRow('${entityId}')">+ agregar oportunidad</button>
+  document.getElementById('mainContent').innerHTML=`
+    <div class="ctx ${isMx?'mx':'or'}">${badgeText}</div>
+    <div class="section-divider">📊 Embudo de ventas</div>
+    ${renderFunnel(eid)}
+    <div class="section-divider">🗂️ Oportunidades</div>
+    ${renderPipelineSection(eid)}
+    <div class="section-divider">✅ Tareas & Acciones</div>
+    ${renderTasksSection(eid)}
+    <div class="save-bar"><span class="flash" id="flash">guardado ✓</span><button class="save-btn" onclick="doSave()">Guardar</button></div>
   `;
 }
 
-function renderPipelineRow(r,i,entityId){
-  const stObj=ESTADOS.find(e=>e.val===r.estado)||ESTADOS[0];
-  const opts=ESTADOS.map(e=>`<option value="${e.val}" ${r.estado===e.val?'selected':''}>${e.label}</option>`).join('');
-  return `<tr id="pr-${r.id}">
-    <td><input type="text" placeholder="Empresa..." value="${r.empresa||''}" oninput="upPipeline('${entityId}','${r.id}','empresa',this.value)"></td>
-    <td><input type="text" placeholder="Producto..." value="${r.producto||''}" oninput="upPipeline('${entityId}','${r.id}','producto',this.value)"></td>
-    <td><input type="number" placeholder="0" value="${r.monto||''}" oninput="upPipeline('${entityId}','${r.id}','monto',this.value)" style="width:90px"></td>
-    <td><input type="date" value="${r.fecha||''}" oninput="upPipeline('${entityId}','${r.id}','fecha',this.value)"></td>
-    <td><select class="status-sel ${stObj.cls}" onchange="upPipeline('${entityId}','${r.id}','estado',this.value);updateSelColor(this)">${opts}</select></td>
-    <td><input type="text" placeholder="Comentarios..." value="${r.comentarios||''}" oninput="upPipeline('${entityId}','${r.id}','comentarios',this.value)"></td>
-    <td><button class="del-btn" onclick="delPipelineRow('${entityId}','${r.id}')">✕</button></td>
-  </tr>`;
-}
+function getP(id){if(!RD.pipeline[id])RD.pipeline[id]=[];return RD.pipeline[id];}
+function getT(id){if(!RD.tasks[id])RD.tasks[id]=[];return RD.tasks[id];}
 
-function updateSelColor(sel){
-  const stObj=ESTADOS.find(e=>e.val===sel.value)||ESTADOS[0];
-  sel.className='status-sel '+stObj.cls;
-}
-
-function addPipelineRow(entityId){
-  const rows=getPipeline(entityId);
-  rows.push({id:uid(),empresa:'',producto:'',monto:'',fecha:'',estado:'prospecto',comentarios:''});
-  renderContent();
-}
-
-function delPipelineRow(entityId,id){
-  remoteData.pipeline[entityId]=getPipeline(entityId).filter(r=>r.id!==id);
-  renderContent();
-}
-
-function upPipeline(entityId,id,field,val){
-  const row=getPipeline(entityId).find(r=>r.id===id);
-  if(row) row[field]=val;
-  // Recalculate KPIs live
-  const rows=getPipeline(entityId);
-  const monto=rows.filter(r=>r.estado!=='perdida').reduce((a,r)=>a+(parseFloat((r.monto||'0').replace(/[^0-9.]/g,''))||0),0);
-  const kvals=document.querySelectorAll('.kval');
-  if(kvals.length>=5) kvals[4].textContent='$'+monto.toLocaleString('es-AR');
-}
-
-// ── TASKS ─────────────────────────────────────────────────
-function getTasks(entityId){
-  if(!remoteData.tasks[entityId]) remoteData.tasks[entityId]=[];
-  return remoteData.tasks[entityId];
-}
-
-function renderTasks(entityId){
-  const tasks=getTasks(entityId);
-  return `
-    <div class="tasks-list">
-      ${tasks.map(t=>renderTaskRow(t,entityId)).join('')}
+function renderFunnel(eid){
+  const rows=getP(eid);
+  if(!rows.length)return `<div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text-dimmer);padding:12px 0 8px">Sin oportunidades cargadas</div>`;
+  const activeRows=rows.filter(r=>!['cerrada','standby','perdida'].includes(r.estado));
+  const maxC=Math.max(1,...FUNNEL.map(e=>rows.filter(r=>r.estado===e.val).length));
+  const bars=FUNNEL.map((e,i)=>{
+    const cnt=rows.filter(r=>r.estado===e.val).length;
+    const monto=rows.filter(r=>r.estado===e.val).reduce((a,r)=>a+parseMonto(r.monto),0);
+    const bw=cnt===0?0:Math.max(6,Math.round((cnt/maxC)*100));
+    const fw=Math.max(35,100-i*9);
+    return `<div class="funnel-row">
+      <div class="funnel-row-label">${e.label}</div>
+      <div class="funnel-bar-wrap" style="max-width:${fw}%">
+        <div class="funnel-bar" id="fb-${e.val}" style="width:${bw}%;background:${e.color}">
+          ${cnt>0?`<span class="funnel-bar-label">${cnt}${monto>0?' · '+fmtUSD(monto):''}</span>`:''}
+        </div>
+      </div>
+      <div class="funnel-count" style="color:${e.color}">${cnt}</div>
+    </div>`;
+  }).join('');
+  const cerradas=rows.filter(r=>r.estado==='cerrada');
+  const perdidas=rows.filter(r=>r.estado==='perdida');
+  const standby=rows.filter(r=>r.estado==='standby');
+  return `<div class="funnel-bars">${bars}</div>
+  <div class="bottom-states">
+    <div class="bstate-card">
+      <div><div class="bstate-label">✅ Ventas cerradas</div><div class="bstate-sub">${fmtUSD(cerradas.reduce((a,r)=>a+parseMonto(r.monto),0))}</div></div>
+      <div class="bstate-val" style="color:var(--green)">${cerradas.length}</div>
     </div>
-    <button class="add-row-btn" onclick="addTask('${entityId}')" style="margin-top:10px">+ agregar tarea</button>
-  `;
-}
-
-function renderTaskRow(t,entityId){
-  return `<div class="task-item" id="ti-${t.id}">
-    <input type="checkbox" class="tcheck" ${t.done?'checked':''} onchange="upTask('${entityId}','${t.id}','done',this.checked)">
-    <input type="text" class="tinput ${t.done?'done':''}" placeholder="Tarea, prospección, evento, webinar..." value="${t.tarea||''}" oninput="upTask('${entityId}','${t.id}','tarea',this.value)" id="tt-${t.id}">
-    <input type="date" class="tdate" value="${t.deadline||''}" oninput="upTask('${entityId}','${t.id}','deadline',this.value)" title="Deadline">
-    <input type="text" class="tresp" placeholder="Responsable..." value="${t.responsable||''}" oninput="upTask('${entityId}','${t.id}','responsable',this.value)">
-    <button class="del-btn" onclick="delTask('${entityId}','${t.id}')">✕</button>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="bstate-card"><div class="bstate-label">⏸️ Stand-by</div><div class="bstate-val" style="color:var(--text-dim)">${standby.length}</div></div>
+      <div class="bstate-card"><div class="bstate-label">❌ Perdidas</div><div class="bstate-val" style="color:var(--red)">${perdidas.length}</div></div>
+    </div>
   </div>`;
 }
 
-function addTask(entityId){
-  getTasks(entityId).push({id:uid(),tarea:'',deadline:'',responsable:'',done:false});
-  renderContent();
-  setTimeout(()=>{const inputs=document.querySelectorAll('.tinput');if(inputs.length)inputs[inputs.length-1].focus();},50);
+function renderPipelineSection(eid){
+  const rows=getP(eid);
+  const monto=rows.filter(r=>r.estado!=='perdida').reduce((a,r)=>a+parseMonto(r.monto),0);
+  const neg=rows.filter(r=>['negociacion','propuesta'].includes(r.estado)).length;
+  const rowsHTML=rows.map(r=>{
+    const cls=ECLS[r.estado]||'s0';
+    const opts=ALL_ESTADOS.map(e=>`<option value="${e.val}" ${r.estado===e.val?'selected':''}>${e.label}</option>`).join('');
+    return `<tr><td><input type="text" placeholder="Empresa..." value="${r.empresa||''}" oninput="upP('${eid}','${r.id}','empresa',this.value)"></td>
+    <td><select class="prod-sel" onchange="upP('${eid}','${r.id}','producto',this.value)"><option value="">— producto —</option>${['ULTRA','Plus','SaaS','CP','LP'].map(p=>`<option value="${p}" ${r.producto===p?'selected':''}>${p}</option>`).join('')}</select></td>
+    <td><input type="number" placeholder="0" value="${r.monto||''}" oninput="upP('${eid}','${r.id}','monto',this.value)" style="width:85px"></td>
+    <td><input type="date" value="${r.fecha||''}" oninput="upP('${eid}','${r.id}','fecha',this.value)"></td>
+    <td><select class="status-sel ${cls}" onchange="upP('${eid}','${r.id}','estado',this.value);this.className='status-sel '+(ECLS[this.value]||'s0')">${opts}</select></td>
+    <td><input type="text" placeholder="Comentarios..." value="${r.comentarios||''}" oninput="upP('${eid}','${r.id}','comentarios',this.value)"></td>
+    <td><button class="del-btn" onclick="delP('${eid}','${r.id}')">✕</button></td></tr>`;
+  }).join('');
+  return `<div class="kpi-row">
+    <div class="kpi-card"><label>Total</label><div class="kval">${rows.length}</div></div>
+    <div class="kpi-card"><label>Activas</label><div class="kval">${rows.filter(r=>!['cerrada','perdida','standby'].includes(r.estado)).length}</div></div>
+    <div class="kpi-card"><label>Negociación</label><div class="kval">${neg}</div></div>
+    <div class="kpi-card"><label>Cerradas</label><div class="kval" style="color:var(--green)">${rows.filter(r=>r.estado==='cerrada').length}</div></div>
+    <div class="kpi-card"><label>Forecast USD</label><div class="kval small">${fmtUSD(monto)}</div></div>
+  </div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Empresa</th><th>Producto</th><th>Monto USD</th><th>Fecha cierre</th><th style="min-width:170px">Estado</th><th>Comentarios</th><th></th></tr></thead>
+    <tbody>${rowsHTML}</tbody>
+  </table></div>
+  <button class="add-row-btn" onclick="addP('${eid}')">+ agregar oportunidad</button>`;
 }
 
-function delTask(entityId,id){
-  remoteData.tasks[entityId]=getTasks(entityId).filter(t=>t.id!==id);
-  renderContent();
+function addP(id){getP(id).push({id:uid(),empresa:'',producto:'',monto:'',fecha:'',estado:'prospecto',comentarios:''});renderContent();}
+function delP(id,rid){RD.pipeline[id]=getP(id).filter(r=>r.id!==rid);renderContent();}
+function upP(id,rid,field,val){const r=getP(id).find(r=>r.id===rid);if(r)r[field]=val;}
+
+function renderTasksSection(eid){
+  const tasks=getT(eid);
+  return `<div class="tasks-list">${tasks.map(t=>`<div class="task-item">
+    <input type="checkbox" class="tcheck" ${t.done?'checked':''} onchange="upT('${eid}','${t.id}','done',this.checked)">
+    <input type="text" class="tinput ${t.done?'done':''}" placeholder="Tarea, evento, webinar, material..." value="${t.tarea||''}" oninput="upT('${eid}','${t.id}','tarea',this.value)" id="tt-${t.id}">
+    <input type="date" class="tdate" value="${t.deadline||''}" oninput="upT('${eid}','${t.id}','deadline',this.value)">
+    <input type="text" class="tresp" placeholder="Responsable..." value="${t.responsable||''}" oninput="upT('${eid}','${t.id}','responsable',this.value)">
+    <button class="del-btn" onclick="delT('${eid}','${t.id}')">✕</button>
+  </div>`).join('')}</div>
+  <button class="add-row-btn" onclick="addT('${eid}')" style="margin-top:8px">+ agregar tarea</button>`;
 }
 
-function upTask(entityId,id,field,val){
-  const task=getTasks(entityId).find(t=>t.id===id);
-  if(!task) return;
-  task[field]=val;
-  if(field==='done'){
-    const el=document.getElementById(`tt-${id}`);
-    if(el) el.className=`tinput ${val?'done':''}`;
-  }
-}
+function addT(id){getT(id).push({id:uid(),tarea:'',deadline:'',responsable:'',done:false});renderContent();setTimeout(()=>{const a=document.querySelectorAll('.tinput');if(a.length)a[a.length-1].focus();},50);}
+function delT(id,tid){RD.tasks[id]=getT(id).filter(t=>t.id!==tid);renderContent();}
+function upT(id,tid,field,val){const t=getT(id).find(t=>t.id===tid);if(!t)return;t[field]=val;if(field==='done'){const el=document.getElementById('tt-'+tid);if(el)el.className='tinput '+(val?'done':'');}}
 
-// ── GLOBAL VIEW ───────────────────────────────────────────
 function renderGlobal(){
-  const allEntities=[
-    ...ORS.filter(o=>o.type==='or'),
-    ...MEXICO_BPS
-  ];
-
+  const allEntities=[...ORS.filter(o=>o.type==='or'),...MEXICO_BPS.map(b=>({...b,flag:'🇲🇽'}))];
+  const allRows=Object.values(RD.pipeline).flat();
+  const totalMonto=allRows.filter(r=>r.estado!=='perdida').reduce((a,r)=>a+parseMonto(r.monto),0);
   const cards=allEntities.map(e=>{
-    const entityId=e.id;
-    const rows=remoteData.pipeline[entityId]||[];
-    const flag=e.flag||(MEXICO_BPS.find(b=>b.id===e.id)?'🇲🇽':'');
-    const name=e.role?`${e.role} · ${e.name}`:e.name;
-    const activos=rows.filter(r=>r.estado&&r.estado!=='cerrada'&&r.estado!=='perdida').length;
+    const rows=RD.pipeline[e.id]||[];
+    const monto=rows.filter(r=>r.estado!=='perdida').reduce((a,r)=>a+parseMonto(r.monto),0);
     const cerradas=rows.filter(r=>r.estado==='cerrada').length;
-    const monto=rows.filter(r=>r.estado!=='perdida').reduce((a,r)=>a+(parseFloat((r.monto||'0').replace(/[^0-9.]/g,''))||0),0);
-    const neg=rows.filter(r=>r.estado==='negociacion'||r.estado==='propuesta').length;
-    return `<div class="global-card" onclick="goToOR('${entityId}')">
-      <div class="gc-header">
-        <div class="gc-name">${flag} ${name}</div>
-        <div class="gc-badge amarillo">${rows.length} opp</div>
-      </div>
-      <div class="gc-kpi">En proceso <span>${activos}</span></div>
-      <div class="gc-kpi">En negociación <span>${neg}</span></div>
-      <div class="gc-kpi">Cerradas <span style="color:var(--green)">${cerradas}</span></div>
-      <div class="gc-kpi">Forecast USD <span>$${monto.toLocaleString('es-AR')}</span></div>
+    const maxC=Math.max(1,...FUNNEL.map(f=>rows.filter(r=>r.estado===f.val).length));
+    const miniBars=FUNNEL.map(f=>{
+      const cnt=rows.filter(r=>r.estado===f.val).length;
+      return `<div class="gc-bar-row">
+        <div class="gc-bar-label">${f.label.split(' ').slice(0,2).join(' ')}</div>
+        <div class="gc-bar-wrap"><div class="gc-bar" style="width:${cnt===0?0:Math.max(4,Math.round((cnt/maxC)*100))}%;background:${f.color}"></div></div>
+        <div class="gc-bar-count" style="color:${f.color}">${cnt}</div>
+      </div>`;
+    }).join('');
+    const name=e.role?`${e.role} · ${e.name}`:e.name;
+    return `<div class="global-card" onclick="goTo('${e.id}')">
+      <div class="gc-header"><div class="gc-name">${e.flag} ${name}</div><div class="gc-opp">${rows.length} opp</div></div>
+      ${miniBars}
+      <div class="gc-footer"><span>Forecast USD · ✅ ${cerradas} cerradas</span>${fmtUSD(monto)}</div>
     </div>`;
   }).join('');
-
-  // Totales globales
-  const allRows=Object.values(remoteData.pipeline).flat();
-  const totalMonto=allRows.filter(r=>r.estado!=='perdida').reduce((a,r)=>a+(parseFloat((r.monto||'0').replace(/[^0-9.]/g,''))||0),0);
-  const totalCerradas=allRows.filter(r=>r.estado==='cerrada').length;
-  const totalActivos=allRows.filter(r=>r.estado&&r.estado!=='cerrada'&&r.estado!=='perdida').length;
-
   document.getElementById('mainContent').innerHTML=`
-    <div class="kpi-row" style="margin-bottom:20px">
+    <div class="global-kpi-row">
       <div class="kpi-card"><label>Total oportunidades</label><div class="kval">${allRows.length}</div></div>
-      <div class="kpi-card"><label>En proceso</label><div class="kval">${totalActivos}</div></div>
-      <div class="kpi-card"><label>Cerradas</label><div class="kval" style="color:var(--green)">${totalCerradas}</div></div>
-      <div class="kpi-card" style="grid-column:span 2"><label>Forecast Total USD</label><div class="kval small">$${totalMonto.toLocaleString('es-AR')}</div></div>
+      <div class="kpi-card"><label>Activas</label><div class="kval">${allRows.filter(r=>!['cerrada','perdida','standby'].includes(r.estado)).length}</div></div>
+      <div class="kpi-card"><label>Cerradas</label><div class="kval" style="color:var(--green)">${allRows.filter(r=>r.estado==='cerrada').length}</div></div>
+      <div class="kpi-card"><label>Forecast Global USD</label><div class="kval small">${fmtUSD(totalMonto)}</div></div>
     </div>
-    <div class="global-grid">${cards}</div>
-  `;
+    <div class="global-grid">${cards}</div>`;
 }
 
-function goToOR(entityId){
-  const bp=MEXICO_BPS.find(b=>b.id===entityId);
-  if(bp){currentOR='mexico';currentBP=entityId;}
-  else{currentOR=entityId;}
-  currentSection='pipeline';
-  document.querySelectorAll('.stab').forEach((t,i)=>t.classList.toggle('active',i===0));
-  renderTabs();
-  renderContent();
+function goTo(eid){
+  const bp=MEXICO_BPS.find(b=>b.id===eid);
+  if(bp){currentOR='mexico';currentBP=eid;}else currentOR=eid;
+  renderTabs();renderContent();
 }
 
-// ── INIT ──────────────────────────────────────────────────
 loadAll();
-setInterval(loadAll, 90000);
+setInterval(loadAll,90000);
 </script>
 </body>
 </html>
