@@ -175,14 +175,14 @@ const ALL_ESTADOS=[...FUNNEL,...FINAL];
 const ECLS={prospecto:'s0',contacto:'s1',interes:'s2',reunion:'s3',propuesta:'s4',negociacion:'s5',cerrada:'s6',standby:'s7',perdida:'s8'};
 
 let currentOR='global',currentBP='mx_juanpa';
-let RD={pipeline:{},tasks:{}};
+let RD={pipeline:{},tasks:{},objetivos:{}};
 
 function loadAll(){
   syncS('loading','sincronizando...');overlay(true,'cargando datos...');
   const cb='sgCb_'+Date.now(),s=document.createElement('script');
   window[cb]=function(res){
     delete window[cb];s.remove();overlay(false);
-    if(res.success){RD.pipeline=res.pipeline||{};RD.tasks=res.tasks||{};syncS('ok','sincronizado · '+now());}
+    if(res.success){RD.pipeline=res.pipeline||{};RD.tasks=res.tasks||{};RD.objetivos=res.objetivos||{};syncS('ok','sincronizado · '+now());}
     else syncS('err','error al cargar');
     renderTabs();renderContent();
   };
@@ -197,6 +197,7 @@ async function doSave(){
   try{
     await fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'savePipeline',entityId:eid,rows:RD.pipeline[eid]||[]})});
     await fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'saveTasks',entityId:eid,tasks:RD.tasks[eid]||[]})});
+    await fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'saveObjetivo',entityId:eid,objetivo:RD.objetivos[eid]||''})});
     syncS('ok','guardado · '+now());flash();
   }catch(e){syncS('err','error al guardar');}
 }
@@ -206,6 +207,7 @@ function syncS(s,m){const d=document.getElementById('sdot'),t=document.getElemen
 function now(){return new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});}
 function flash(){const f=document.getElementById('flash');if(f){f.classList.add('show');setTimeout(()=>f.classList.remove('show'),1800);}}
 function uid(){return Math.random().toString(36).substr(2,8);}
+function calcPct(eid){const obj=parseMonto(RD.objetivos[eid]||'0');const cerr=getP(eid).filter(r=>r.estado==='cerrada').reduce((a,r)=>a+parseMonto(r.monto),0);return obj>0?Math.min(100,Math.round((cerr/obj)*100)):0;}
 function fmtUSD(n){return '$'+Number(n||0).toLocaleString('es-AR');}
 function parseMonto(v){return parseFloat((v||'0').toString().replace(/[^0-9.]/g,''))||0;}
 
@@ -230,8 +232,29 @@ function renderContent(){
   const isMx=currentOR==='mexico';
   const entity=isMx?MEXICO_BPS.find(b=>b.id===eid):ORS.find(o=>o.id===eid);
   const badgeText=isMx?`🇲🇽 México · ${entity.role} · ${entity.name}`:`${ORS.find(o=>o.id===currentOR)?.flag} Oficina Regional · ${entity?.name||''}`;
+  const obj=RD.objetivos[eid]||'';
+  const montoTotal=getP(eid).filter(r=>r.estado!=='perdida').reduce((a,r)=>a+parseMonto(r.monto),0);
+  const montoCerradas=getP(eid).filter(r=>r.estado==='cerrada').reduce((a,r)=>a+parseMonto(r.monto),0);
+  const objNum=parseMonto(obj);
+  const pctObj=objNum>0?Math.min(100,Math.round((montoCerradas/objNum)*100)):0;
+  const objBar=objNum>0?`<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;gap:16px;">
+    <div style="flex-shrink:0">
+      <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text-dimmer);margin-bottom:4px">Objetivo del mes</div>
+      <input type="text" value="${obj}" placeholder="$ 0" oninput="RD.objetivos['${eid}']=this.value;document.getElementById('obj-pct').textContent=calcPct('${eid}')+'%';document.getElementById('obj-bar-fill').style.width=calcPct('${eid}')+'%'" style="background:transparent;border:none;color:var(--accent);font-family:'DM Mono',monospace;font-size:20px;font-weight:500;outline:none;width:130px">
+    </div>
+    <div style="flex:1">
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+        <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text-dim)">Cerradas: ${fmtUSD(montoCerradas)}</span>
+        <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--accent)" id="obj-pct">${pctObj}%</span>
+      </div>
+      <div style="height:8px;background:var(--surface2);border-radius:4px;overflow:hidden">
+        <div id="obj-bar-fill" style="height:100%;width:${pctObj}%;background:${pctObj>=100?'var(--green)':pctObj>=60?'var(--accent)':'#f97316'};border-radius:4px;transition:width 0.5s ease"></div>
+      </div>
+    </div>
+  </div>`:'<div style="background:var(--surface);border:1px dashed var(--border);border-radius:10px;padding:12px 18px;margin-bottom:16px;display:flex;align-items:center;gap:12px"><span style="font-family:\'DM Mono\',monospace;font-size:10px;color:var(--text-dimmer)">Objetivo del mes:</span><input type="text" placeholder="$ 40,000" oninput="RD.objetivos[\''+eid+'\']=this.value" style="background:transparent;border:none;color:var(--accent);font-family:\'DM Mono\',monospace;font-size:16px;outline:none;width:120px"><span style="font-family:\'DM Mono\',monospace;font-size:10px;color:var(--text-dimmer)">(guardá para ver el progreso)</span></div>';
   document.getElementById('mainContent').innerHTML=`
     <div class="ctx ${isMx?'mx':'or'}">${badgeText}</div>
+    ${objBar}
     <div class="section-divider">📊 Embudo de ventas</div>
     ${renderFunnel(eid)}
     <div class="section-divider">🗂️ Oportunidades</div>
@@ -372,6 +395,35 @@ function goTo(eid){
 
 loadAll();
 setInterval(loadAll,90000);
+
+// Pre-carga Colombia desde minuta 06/05/2025
+(function preloadColombia(){
+  const eid='colombia';
+  if(!RD.pipeline[eid]||RD.pipeline[eid].length===0){
+    RD.pipeline[eid]=[
+      {id:'col01',empresa:'Datage',producto:'',monto:'',fecha:'2025-05-15',estado:'reunion',comentarios:'Viaje Barranquilla 13-15 mayo. Tienen licencia perpetua, quieren tomar Afinía. Contacto vía yux.'},
+      {id:'col02',empresa:'Sampala / Grupo Afinidad',producto:'LP',monto:'',fecha:'2025-05-15',estado:'contacto',comentarios:'Reunión en Barranquilla. Hernán cotizó segunda LP, pendiente oferta Ultra. No tienen opinión aún, compiten Datesh y Vale.'},
+      {id:'col03',empresa:'Cooperativa Reservistas',producto:'Plus',monto:'',fecha:'',estado:'interes',comentarios:'1.500 cuentas. Error en CRM, no aparece. Reunión confirmada con gerente directo.'},
+      {id:'col04',empresa:'PPH',producto:'Plus',monto:'',fecha:'',estado:'interes',comentarios:'Ganaron contrato. Pasan de SaaS a Plus.'},
+      {id:'col05',empresa:'Imnotics',producto:'',monto:'',fecha:'',estado:'negociacion',comentarios:'Esperando firma. Casi cerrado, considerado ingreso seguro del mes.'},
+      {id:'col06',empresa:'Rival',producto:'',monto:'',fecha:'',estado:'negociacion',comentarios:'Proyecto de largo plazo arrastrado del mes anterior. Alta probabilidad de cierre.'},
+      {id:'col07',empresa:'Horus',producto:'',monto:'',fecha:'',estado:'negociacion',comentarios:'Proyecto de largo plazo arrastrado del mes anterior. Alta probabilidad de cierre.'},
+      {id:'col08',empresa:'Rafa (empresa monitoreo)',producto:'SaaS',monto:'',fecha:'',estado:'contacto',comentarios:'Potencial canal SaaS. Acuerdo objetivo 55-60%. No renovó licencia individual. Contactar vía Sergio.'},
+      {id:'col09',empresa:'Oxxo',producto:'',monto:'',fecha:'',estado:'standby',comentarios:'Fue a licitación privada. Esperando invitación formal. Luisa lo trabajó con Oscar, módulo video + apps.'},
+    ];
+  }
+  if(!RD.tasks[eid]||RD.tasks[eid].length===0){
+    RD.tasks[eid]=[
+      {id:'ct01',tarea:'Cluster de Seguridad — participación evento',deadline:'2025-05-20',responsable:'Juan Sebastián',done:false},
+      {id:'ct02',tarea:'Webinar universidades (Productividad) — vertical educación',deadline:'2025-05-07',responsable:'Yuleidis + Luisa',done:false},
+      {id:'ct03',tarea:'Cronograma visitas semana + 3 días Barranquilla (13-15 mayo)',deadline:'2025-05-06',responsable:'Juan Sebastián',done:false},
+      {id:'ct04',tarea:'Club de Beneficios — propuesta marcas comunisander (garnet, hulefón, uniview, flick)',deadline:'2025-05-12',responsable:'Martín Castaño',done:false},
+      {id:'ct05',tarea:'Acuerdo SaaS Atlas 70/30 — seguimiento Luis Humberto firma',deadline:'',responsable:'Juan Sebastián',done:false},
+      {id:'ct06',tarea:'Rafa — gestionar renovación licencia individual vía Sergio',deadline:'',responsable:'Hernán',done:false},
+    ];
+  }
+  if(!RD.objetivos[eid]) RD.objetivos[eid]='40000';
+})();
 </script>
 </body>
 </html>
