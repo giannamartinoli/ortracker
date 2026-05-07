@@ -5,110 +5,153 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OR Pipeline Tracker · SoftGuard</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap');
-  :root {
-    --bg:#0f0f0f;--surface:#1a1a1a;--surface2:#242424;--border:#2e2e2e;
-    --accent:#c8f135;--text:#f0f0f0;--text-dim:#888;--text-dimmer:#555;
-    --red:#ff4d4d;--green:#c8f135;--orange:#f1a135;--blue:#3b82f6;
-  }
-  *{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:24px;}
-  .overlay{position:fixed;inset:0;background:rgba(15,15,15,0.92);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:12px;}
-  .overlay.hidden{display:none;}
-  .spinner{width:28px;height:28px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;}
-  @keyframes spin{to{transform:rotate(360deg)}}
-  .overlay-text{font-family:'DM Mono',monospace;font-size:11px;color:var(--text-dim);letter-spacing:1px;}
-  header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid var(--border);}
-  header h1{font-size:22px;font-weight:800;letter-spacing:-0.5px;}
-  header h1 span{color:var(--accent);}
-  .header-meta{font-family:'DM Mono',monospace;font-size:10px;color:var(--text-dimmer);margin-top:4px;letter-spacing:0.5px;}
-  .header-right{display:flex;align-items:center;gap:14px;}
-  .save-btn{font-family:'Syne',sans-serif;font-weight:700;font-size:12px;background:var(--accent);color:var(--bg);border:none;border-radius:8px;padding:9px 22px;cursor:pointer;transition:all 0.15s;}
-  .save-btn:hover{opacity:0.85;transform:translateY(-1px);}
-  .flash{font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);opacity:0;transition:opacity 0.3s;}
-  .flash.show{opacity:1;}
-  .or-tabs{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;}
-  .or-tab{font-family:'Syne',sans-serif;font-weight:700;font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:7px 16px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text-dim);cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:6px;}
-  .or-tab:hover{border-color:var(--accent);color:var(--accent);}
-  .or-tab.active{background:var(--accent);color:var(--bg);border-color:var(--accent);}
-  .or-tab.mx-active{background:var(--blue);color:#fff;border-color:var(--blue);}
-  .or-tab.glob-active{background:var(--surface2);color:var(--text);border-color:var(--text-dim);}
-  .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
-  .bp-wrap{display:none;margin-bottom:20px;padding:14px 16px;background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.2);border-radius:10px;}
-  .bp-wrap.show{display:block;}
-  .bp-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:#93c5fd;margin-bottom:10px;opacity:0.8;}
-  .bp-tabs{display:flex;gap:6px;flex-wrap:wrap;}
-  .bp-tab{font-family:'Syne',sans-serif;font-weight:600;font-size:11px;padding:6px 16px;border-radius:6px;border:1px solid rgba(59,130,246,0.3);background:transparent;color:#93c5fd;cursor:pointer;transition:all 0.15s;}
-  .bp-tab:hover{border-color:var(--blue);color:#fff;}
-  .bp-tab.active{background:var(--blue);color:#fff;border-color:var(--blue);}
-  .sync-bar{font-family:'DM Mono',monospace;font-size:10px;color:var(--text-dimmer);letter-spacing:0.5px;margin-bottom:20px;display:flex;align-items:center;gap:8px;}
-  .sync-dot{width:6px;height:6px;border-radius:50%;background:var(--text-dimmer);}
-  .sync-dot.ok{background:var(--green);}
-  .sync-dot.err{background:var(--red);}
-  .sync-dot.loading{background:var(--orange);animation:pulse 1s infinite;}
-  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
-  .err-banner{background:rgba(255,77,77,0.1);border:1px solid rgba(255,77,77,0.3);border-radius:8px;padding:12px 16px;font-family:'DM Mono',monospace;font-size:11px;color:var(--red);margin-bottom:16px;display:none;}
-  .err-banner.show{display:block;}
-  .ctx-badge{display:inline-flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.8px;padding:4px 12px;border-radius:20px;margin-bottom:20px;}
-  .ctx-badge.or{background:rgba(200,241,53,0.07);border:1px solid rgba(200,241,53,0.2);color:var(--accent);}
-  .ctx-badge.mx{background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);color:#93c5fd;}
-  .ctx-badge.global{background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--text-dim);}
-  .slabel{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-dim);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
-  .slabel::after{content:'';flex:1;height:1px;background:var(--border);}
-  .kpi-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px;}
-  .kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 14px;text-align:center;}
-  .kpi-card label{display:block;font-family:'DM Mono',monospace;font-size:9px;color:var(--text-dimmer);letter-spacing:0.8px;text-transform:uppercase;margin-bottom:8px;}
-  .kpi-val{font-family:'DM Mono',monospace;font-size:26px;font-weight:500;color:var(--accent);}
-  .kpi-val.blue{color:var(--blue);}
-  .kpi-val.green{color:#4ade80;}
-  .kpi-val.orange{color:var(--orange);}
-  .tbl-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:24px;}
-  .tbl-wrap table{width:100%;border-collapse:collapse;}
-  .tbl-wrap th{background:var(--surface2);padding:10px 14px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text-dim);text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;}
-  .tbl-wrap td{padding:7px 10px;border-bottom:1px solid rgba(46,46,46,0.5);vertical-align:middle;}
-  .tbl-wrap tr:last-child td{border-bottom:none;}
-  .tbl-wrap tbody tr:hover td{background:rgba(255,255,255,0.015);}
-  .tbl-input{background:transparent;border:none;color:var(--text);font-family:'Syne',sans-serif;font-size:13px;outline:none;width:100%;padding:3px 5px;border-radius:4px;transition:background 0.15s;}
-  .tbl-input:focus{background:var(--surface2);}
-  .tbl-input::placeholder{color:var(--text-dimmer);}
-  .tbl-input.mono{font-family:'DM Mono',monospace;font-size:12px;color:var(--accent);}
-  .stage-select{border:none;font-family:'DM Mono',monospace;font-size:10px;outline:none;cursor:pointer;padding:4px 8px;border-radius:6px;width:100%;font-weight:500;letter-spacing:0.3px;transition:all 0.15s;}
-  .stage-select option{background:#1a1a1a;color:#f0f0f0;}
-  .del-btn{background:none;border:none;color:var(--text-dimmer);cursor:pointer;font-size:18px;line-height:1;padding:3px 8px;border-radius:6px;transition:all 0.15s;display:block;}
-  .del-btn:hover{color:var(--red);background:rgba(255,77,77,0.1);}
-  .add-row-btn{width:100%;padding:11px;background:none;border:none;border-top:1px dashed var(--border);color:var(--text-dimmer);font-family:'Syne',sans-serif;font-size:12px;cursor:pointer;transition:all 0.15s;text-align:center;}
-  .add-row-btn:hover{color:var(--accent);background:rgba(200,241,53,0.03);}
-  .task-check{width:16px;height:16px;border-radius:4px;border:2px solid var(--border);cursor:pointer;appearance:none;flex-shrink:0;transition:all 0.15s;position:relative;display:block;}
-  .task-check:checked{background:var(--accent);border-color:var(--accent);}
-  .task-check:checked::after{content:'✓';position:absolute;top:-3px;left:1px;font-size:12px;color:var(--bg);font-weight:700;}
-  .done-row td{opacity:0.38;}
-  .done-row .tbl-input{text-decoration:line-through;}
-  .date-input{background:transparent;border:none;color:var(--text-dim);font-family:'DM Mono',monospace;font-size:11px;outline:none;cursor:pointer;padding:3px 5px;border-radius:4px;transition:background 0.15s;}
-  .date-input:focus{background:var(--surface2);color:var(--text);}
-  .sbadge{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:5px 12px;border-radius:20px;border:1px solid;cursor:pointer;transition:all 0.15s;background:none;opacity:0.3;}
-  .sbadge.on{opacity:1;}
-  .sbadge.verde{color:var(--green);border-color:var(--green);}
-  .sbadge.amarillo{color:var(--orange);border-color:var(--orange);}
-  .sbadge.rojo{color:var(--red);border-color:var(--red);}
-  .bottom-bar{display:flex;justify-content:space-between;align-items:center;margin-top:4px;padding-top:16px;border-top:1px solid var(--border);gap:10px;flex-wrap:wrap;}
-  .global-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;}
-  .global-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;}
-  .global-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border);}
-  .global-card-title{font-size:14px;font-weight:700;}
-  .global-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:12px;}
-  .global-row-key{color:var(--text-dim);font-family:'DM Mono',monospace;font-size:10px;}
-  .global-row-val{font-family:'DM Mono',monospace;font-size:12px;color:var(--accent);}
-  .stage-bar{margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:4px;}
-  .stage-bar-row{display:flex;align-items:center;gap:8px;font-family:'DM Mono',monospace;font-size:10px;}
-  .stage-bar-label{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .stage-bar-count{min-width:18px;text-align:right;color:var(--accent);}
-  .empty-row td{text-align:center;color:var(--text-dimmer);font-family:'DM Mono',monospace;font-size:11px;padding:24px;letter-spacing:0.5px;}
-  @media(max-width:680px){.kpi-bar{grid-template-columns:repeat(2,1fr);}.hide-mobile{display:none;}}
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap');
+:root{
+  --bg:#0f0f0f;--surface:#1a1a1a;--surface2:#242424;--surface3:#2a2a2a;
+  --border:#2e2e2e;--accent:#c8f135;--text:#f0f0f0;--text-dim:#888;--text-dimmer:#555;
+  --red:#ff4d4d;--green:#c8f135;--orange:#f1a135;--blue:#3b82f6;--purple:#a78bfa;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:20px;}
+
+/* OVERLAY */
+.overlay{position:fixed;inset:0;background:rgba(15,15,15,0.92);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:300;gap:12px;}
+.overlay.hidden{display:none;}
+.spinner{width:28px;height:28px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.overlay-text{font-family:'DM Mono',monospace;font-size:11px;color:var(--text-dim);letter-spacing:1px;}
+
+/* HEADER */
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:12px;}
+header h1{font-size:20px;font-weight:800;letter-spacing:-0.5px;}
+header h1 span{color:var(--accent);}
+.header-meta{font-family:'DM Mono',monospace;font-size:10px;color:var(--text-dimmer);margin-top:3px;letter-spacing:0.5px;}
+
+/* SYNC */
+.sync-row{display:flex;align-items:center;gap:8px;margin-bottom:16px;}
+.sdot{width:6px;height:6px;border-radius:50%;}
+.sdot.ok{background:var(--green);} .sdot.err{background:var(--red);} .sdot.loading{background:var(--orange);animation:pulse 1s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.stext{font-family:'DM Mono',monospace;font-size:10px;color:var(--text-dimmer);letter-spacing:0.5px;}
+.refresh-btn{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;background:none;border:1px solid var(--border);color:var(--text-dimmer);border-radius:5px;padding:3px 10px;cursor:pointer;transition:all 0.15s;margin-left:8px;}
+.refresh-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+/* OR TABS */
+.or-tabs{display:flex;gap:5px;margin-bottom:6px;flex-wrap:wrap;}
+.or-tab{font-family:'Syne',sans-serif;font-weight:700;font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:6px 14px;border-radius:7px;border:1px solid var(--border);background:var(--surface);color:var(--text-dim);cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:5px;}
+.or-tab:hover{border-color:var(--accent);color:var(--accent);}
+.or-tab.active{background:var(--accent);color:var(--bg);border-color:var(--accent);}
+.or-tab.mx-active{background:var(--blue);color:#fff;border-color:var(--blue);}
+.dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+.dot.g{background:var(--green);}.dot.o{background:var(--orange);}.dot.r{background:var(--red);}.dot.b{background:var(--blue);}
+
+/* BP TABS */
+.bp-wrap{display:none;margin-bottom:16px;padding:12px 14px;background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.2);border-radius:10px;}
+.bp-wrap.show{display:block;}
+.bp-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:#93c5fd;margin-bottom:8px;opacity:0.8;}
+.bp-tabs{display:flex;gap:5px;flex-wrap:wrap;}
+.bp-tab{font-family:'Syne',sans-serif;font-weight:600;font-size:10px;padding:5px 13px;border-radius:6px;border:1px solid rgba(59,130,246,0.3);background:transparent;color:#93c5fd;cursor:pointer;transition:all 0.15s;}
+.bp-tab:hover{border-color:var(--blue);color:#fff;}
+.bp-tab.active{background:var(--blue);color:#fff;border-color:var(--blue);}
+
+/* SECTION TABS */
+.section-tabs{display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:0;}
+.stab{font-family:'Syne',sans-serif;font-weight:700;font-size:11px;letter-spacing:0.5px;padding:8px 18px;border:none;background:none;color:var(--text-dim);cursor:pointer;transition:all 0.15s;border-bottom:2px solid transparent;margin-bottom:-1px;}
+.stab:hover{color:var(--text);}
+.stab.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+/* KPI SUMMARY */
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px;}
+.kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;}
+.kpi-card label{display:block;font-family:'DM Mono',monospace;font-size:8px;color:var(--text-dimmer);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;}
+.kpi-card .kval{font-family:'DM Mono',monospace;font-size:20px;font-weight:500;color:var(--accent);}
+.kpi-card .kval.small{font-size:14px;}
+
+/* PIPELINE TABLE */
+.table-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--border);}
+table{width:100%;border-collapse:collapse;min-width:800px;}
+thead tr{background:var(--surface2);}
+th{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text-dimmer);padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;}
+tbody tr{border-bottom:1px solid var(--border);transition:background 0.1s;}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:var(--surface2);}
+td{padding:8px 10px;vertical-align:middle;}
+td input[type=text], td input[type=date], td input[type=number]{background:transparent;border:none;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;width:100%;min-width:60px;}
+td input::placeholder{color:var(--text-dimmer);}
+td input[type=number]{color:var(--accent);font-family:'DM Mono',monospace;}
+
+/* STATUS SELECT */
+.status-sel{font-family:'Syne',sans-serif;font-size:11px;font-weight:600;border:none;border-radius:20px;padding:3px 10px;cursor:pointer;outline:none;appearance:none;text-align:center;width:100%;}
+.s0{background:rgba(99,102,241,0.15);color:#818cf8;}
+.s1{background:rgba(59,130,246,0.15);color:#60a5fa;}
+.s2{background:rgba(234,179,8,0.15);color:#fbbf24;}
+.s3{background:rgba(249,115,22,0.15);color:#fb923c;}
+.s4{background:rgba(239,68,68,0.15);color:#f87171;}
+.s5{background:rgba(236,72,153,0.15);color:#f472b6;}
+.s6{background:rgba(34,197,94,0.15);color:#4ade80;}
+.s7{background:rgba(100,116,139,0.15);color:#94a3b8;}
+.s8{background:rgba(255,77,77,0.1);color:#ff6b6b;}
+
+.del-btn{background:none;border:none;color:var(--text-dimmer);cursor:pointer;font-size:14px;padding:2px 6px;border-radius:4px;transition:all 0.15s;line-height:1;}
+.del-btn:hover{color:var(--red);background:rgba(255,77,77,0.1);}
+
+.add-row-btn{display:flex;align-items:center;gap:6px;margin-top:10px;background:transparent;border:1px dashed var(--border);border-radius:8px;padding:9px 14px;color:var(--text-dimmer);font-family:'Syne',sans-serif;font-size:12px;cursor:pointer;width:100%;transition:all 0.15s;}
+.add-row-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+/* TASKS */
+.tasks-list{display:flex;flex-direction:column;gap:8px;}
+.task-item{display:grid;grid-template-columns:24px 1fr 140px 160px 32px;gap:8px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px;transition:all 0.15s;}
+.task-item:hover{border-color:var(--border);}
+.tcheck{width:18px;height:18px;border-radius:5px;border:2px solid var(--border);cursor:pointer;appearance:none;flex-shrink:0;transition:all 0.15s;position:relative;}
+.tcheck:checked{background:var(--accent);border-color:var(--accent);}
+.tcheck:checked::after{content:'✓';position:absolute;top:-2px;left:2px;font-size:13px;color:var(--bg);font-weight:700;}
+.tinput{background:transparent;border:none;color:var(--text);font-family:'Syne',sans-serif;font-size:13px;outline:none;width:100%;}
+.tinput::placeholder{color:var(--text-dimmer);}
+.tinput.done{text-decoration:line-through;color:var(--text-dim);}
+.tdate{background:transparent;border:none;color:var(--text-dim);font-family:'DM Mono',monospace;font-size:11px;outline:none;width:100%;}
+.tresp{background:transparent;border:none;color:var(--text-dim);font-family:'Syne',sans-serif;font-size:12px;outline:none;width:100%;}
+.tresp::placeholder,.tdate::placeholder{color:var(--text-dimmer);}
+
+/* SAVE BAR */
+.save-bar{display:flex;justify-content:flex-end;align-items:center;gap:14px;margin-top:16px;padding-top:14px;border-top:1px solid var(--border);}
+.save-btn{font-family:'Syne',sans-serif;font-weight:700;font-size:12px;background:var(--accent);color:var(--bg);border:none;border-radius:8px;padding:9px 24px;cursor:pointer;transition:all 0.15s;}
+.save-btn:hover{opacity:0.85;transform:translateY(-1px);}
+.flash{font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);opacity:0;transition:opacity 0.3s;}
+.flash.show{opacity:1;}
+
+/* CTX BADGE */
+.ctx{display:inline-flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.8px;padding:4px 12px;border-radius:20px;margin-bottom:14px;}
+.ctx.or{background:rgba(200,241,53,0.07);border:1px solid rgba(200,241,53,0.2);color:var(--accent);}
+.ctx.mx{background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);color:#93c5fd;}
+
+/* GLOBAL VIEW */
+.global-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.global-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;cursor:pointer;transition:all 0.15s;}
+.global-card:hover{border-color:var(--accent);}
+.gc-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.gc-name{font-weight:700;font-size:13px;}
+.gc-badge{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:10px;}
+.gc-badge.verde{color:var(--green);background:rgba(200,241,53,0.1);}
+.gc-badge.amarillo{color:var(--orange);background:rgba(241,161,53,0.1);}
+.gc-badge.rojo{color:var(--red);background:rgba(255,77,77,0.1);}
+.gc-kpi{font-family:'DM Mono',monospace;font-size:11px;color:var(--text-dim);display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border);}
+.gc-kpi:last-child{border:none;}
+.gc-kpi span{color:var(--accent);}
+
+/* FUNNEL LEGEND */
+.funnel-legend{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+.fl-item{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.5px;padding:3px 8px;border-radius:10px;cursor:pointer;transition:opacity 0.15s;}
+.fl-item:hover{opacity:0.7;}
+
+@media(max-width:640px){.kpi-row{grid-template-columns:repeat(3,1fr);}.global-grid{grid-template-columns:1fr;}.task-item{grid-template-columns:24px 1fr 32px;}}
 </style>
 </head>
 <body>
 
-<script>const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyeatihS7hVkuqC1saVuhi3T3Dv59X3SXR_yXn5H6q_jwUoQ8hBBcItoIJ-W1YItm8X/exec';</script>
+<script>
+// ⚠️ REEMPLAZÁ CON TU URL
+const SCRIPT_URL = 'https://script.google.com/a/macros/softguard.com/s/AKfycbwigXKax-dwPOHHI9MeTu9bRECVbW8u7nqtilVM0SNk-xQ0wUeTM1XuN9jTFbGqKtIe/exec';
+</script>
 
 <div class="overlay" id="overlay">
   <div class="spinner"></div>
@@ -120,271 +163,368 @@
     <h1>OR <span>Pipeline Tracker</span></h1>
     <div class="header-meta">SoftGuard · Gerencia Comercial HQ</div>
   </div>
-  <div class="header-right">
-    <span class="flash" id="flashTop">guardado ✓</span>
-    <button class="save-btn" onclick="doSave()">Guardar</button>
-  </div>
 </header>
 
-<div class="sync-bar">
-  <div class="dot sync-dot" id="syncDot"></div>
-  <span id="syncText">conectando...</span>
+<div class="sync-row">
+  <div class="sdot" id="sdot"></div>
+  <span class="stext" id="stext">conectando...</span>
+  <button class="refresh-btn" onclick="loadAll()">↻ Actualizar</button>
 </div>
 
-<div class="err-banner" id="errBanner"></div>
 <div class="or-tabs" id="orTabs"></div>
-
 <div class="bp-wrap" id="bpWrap">
   <div class="bp-label">🇲🇽 México · Business Partners</div>
   <div class="bp-tabs" id="bpTabs"></div>
 </div>
 
+<div class="section-tabs" id="sectionTabs">
+  <button class="stab active" onclick="switchSection('pipeline')">📊 Pipeline</button>
+  <button class="stab" onclick="switchSection('tasks')">✅ Tareas</button>
+  <button class="stab" onclick="switchSection('global')">🌎 Vista Global</button>
+</div>
+
 <div id="mainContent"></div>
 
 <script>
+// ── CONFIG ────────────────────────────────────────────────
 const ORS = [
-  { id:'peru',      name:'Perú',      flag:'🇵🇪', type:'or' },
-  { id:'chile',     name:'Chile',     flag:'🇨🇱', type:'or' },
-  { id:'colombia',  name:'Colombia',  flag:'🇨🇴', type:'or' },
-  { id:'venezuela', name:'Venezuela', flag:'🇻🇪', type:'or' },
-  { id:'panama',    name:'Panamá',    flag:'🇵🇦', type:'or' },
-  { id:'espana',    name:'España',    flag:'🇪🇸', type:'or' },
-  { id:'mexico',    name:'México',    flag:'🇲🇽', type:'mexico' },
+  {id:'peru',    name:'Perú',     flag:'🇵🇪',type:'or'},
+  {id:'chile',   name:'Chile',    flag:'🇨🇱',type:'or'},
+  {id:'colombia',name:'Colombia', flag:'🇨🇴',type:'or'},
+  {id:'venezuela',name:'Venezuela',flag:'🇻🇪',type:'or'},
+  {id:'panama',  name:'Panamá',   flag:'🇵🇦',type:'or'},
+  {id:'espana',  name:'España',   flag:'🇪🇸',type:'or'},
+  {id:'mexico',  name:'México',   flag:'🇲🇽',type:'mexico'},
 ];
 const MEXICO_BPS = [
-  { id:'mx_juanpa', name:'Juan Pablo Ávila', role:'BP' },
-  { id:'mx_syscom', name:'SYSCOM',           role:'Canal' },
-  { id:'mx_carlos', name:'Carlos Martínez',  role:'Rep' },
+  {id:'mx_juanpa',name:'Juan Pablo Ávila',role:'BP'},
+  {id:'mx_syscom',name:'SYSCOM',          role:'Canal'},
+  {id:'mx_carlos',name:'Carlos Martínez', role:'Rep'},
 ];
-const STAGES = [
-  { id:'prospecto_identificado', label:'Prospecto identificado',   emoji:'🔵', order:1 },
-  { id:'contacto_iniciado',      label:'Contacto iniciado',        emoji:'🟣', order:2 },
-  { id:'interes_confirmado',     label:'Interés confirmado',       emoji:'🟡', order:3 },
-  { id:'reunion_realizada',      label:'Reunión / Demo realizada', emoji:'🟠', order:4 },
-  { id:'propuesta_enviada',      label:'Propuesta enviada',        emoji:'🔶', order:5 },
-  { id:'en_negociacion',         label:'En negociación',           emoji:'🔴', order:6 },
-  { id:'venta_cerrada',          label:'Venta cerrada',            emoji:'✅', order:7 },
-  { id:'stand_by',               label:'Stand-by',                 emoji:'⏸️', order:8 },
-  { id:'venta_perdida',          label:'Venta perdida',            emoji:'❌', order:9 },
+const ESTADOS = [
+  {val:'prospecto',  label:'🔵 Prospecto identificado', cls:'s0'},
+  {val:'contacto',   label:'🟣 Contacto iniciado',      cls:'s1'},
+  {val:'interes',    label:'🟡 Interés confirmado',     cls:'s2'},
+  {val:'reunion',    label:'🟠 Reunión / Demo',         cls:'s3'},
+  {val:'propuesta',  label:'🔶 Propuesta enviada',      cls:'s4'},
+  {val:'negociacion',label:'🔴 En negociación',         cls:'s5'},
+  {val:'cerrada',    label:'✅ Venta cerrada',          cls:'s6'},
+  {val:'standby',    label:'⏸️ Stand-by',               cls:'s7'},
+  {val:'perdida',    label:'❌ Venta perdida',          cls:'s8'},
 ];
-const STAGE_STYLE = {
-  prospecto_identificado:{color:'#60a5fa',bg:'rgba(59,130,246,0.14)'},
-  contacto_iniciado:     {color:'#a78bfa',bg:'rgba(139,92,246,0.14)'},
-  interes_confirmado:    {color:'#fbbf24',bg:'rgba(234,179,8,0.14)'},
-  reunion_realizada:     {color:'#fb923c',bg:'rgba(249,115,22,0.14)'},
-  propuesta_enviada:     {color:'#fcd34d',bg:'rgba(245,158,11,0.14)'},
-  en_negociacion:        {color:'#f87171',bg:'rgba(239,68,68,0.14)'},
-  venta_cerrada:         {color:'#4ade80',bg:'rgba(34,197,94,0.14)'},
-  stand_by:              {color:'#9ca3af',bg:'rgba(107,114,128,0.14)'},
-  venta_perdida:         {color:'#6b7280',bg:'rgba(55,65,81,0.18)'},
-};
-const DATA_KEY='__crm__';
-let currentOR='peru', currentBP='mx_juanpa', db={};
 
-function get(id){
-  if(!db[id]) db[id]={pipeline:[],tasks:[],status:'amarillo'};
-  if(!db[id].pipeline) db[id].pipeline=[];
-  if(!db[id].tasks) db[id].tasks=[];
-  if(!db[id].status) db[id].status='amarillo';
-  return db[id];
-}
-function eid(){return currentOR==='mexico'?currentBP:currentOR;}
-function stOf(id){return db[id]?.status||'amarillo';}
+let currentOR = 'peru';
+let currentBP = 'mx_juanpa';
+let currentSection = 'pipeline';
+let remoteData = {pipeline:{}, tasks:{}};
 
-async function apiCall(body){
-  const r=await fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-  return r.json();
-}
-async function loadAll(){
-  syncSt('loading','sincronizando...');
-  showOverlay(true,'cargando datos...');
-  try{
-    const res=await apiCall({action:'loadAll'});
+// ── JSONP LOAD (evita CORS) ───────────────────────────────
+function loadAll() {
+  syncStatus('loading','sincronizando...');
+  overlay(true,'cargando datos...');
+  const cbName = 'sgCb_' + Date.now();
+  const script = document.createElement('script');
+  window[cbName] = function(res) {
+    delete window[cbName];
+    script.remove();
+    overlay(false);
     if(res.success){
-      const raw=res.data||{};
-      Object.keys(raw).forEach(id=>{if(raw[id]&&raw[id][DATA_KEY])db[id]=raw[id][DATA_KEY];});
-      syncSt('ok','sincronizado · '+now());
-    }else{syncSt('err','error al cargar');showErr('No se pudieron cargar los datos: '+res.error);}
-  }catch(e){syncSt('err','sin conexión');showErr('Error de conexión.');}
-  showOverlay(false);renderTabs();renderContent();
-}
-async function doSave(){
-  const id=eid(),data=get(id);
-  syncSt('loading','guardando...');
-  try{
-    const res=await apiCall({action:'save',entityId:id,weekKey:DATA_KEY,data});
-    if(res.success){syncSt('ok','guardado · '+now());flash();}
-    else{syncSt('err','error al guardar');showErr('No se pudo guardar: '+res.error);}
-  }catch(e){syncSt('err','error al guardar');showErr('Error de conexión al guardar.');}
-}
-
-function now(){return new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});}
-function showOverlay(show,msg=''){document.getElementById('overlay').classList.toggle('hidden',!show);if(msg)document.getElementById('overlayText').textContent=msg;}
-function showErr(msg){const b=document.getElementById('errBanner');b.textContent=msg;b.classList.add('show');setTimeout(()=>b.classList.remove('show'),6000);}
-function syncSt(state,msg){const dot=document.getElementById('syncDot'),txt=document.getElementById('syncText');dot.className='dot sync-dot '+(state==='ok'?'ok':state==='err'?'err':'loading');txt.textContent=msg;}
-function flash(){['flashTop','flashBottom'].forEach(id=>{const el=document.getElementById(id);if(el){el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1600);}});}
-function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function fmtMoney(n){if(!n||n===0)return '$ 0';if(n>=1000000)return '$ '+(n/1000000).toFixed(1)+'M';if(n>=1000)return '$ '+(n/1000).toFixed(0)+'k';return '$ '+n.toFixed(0);}
-function stageStyle(id){const s=STAGE_STYLE[id]||{color:'#888',bg:'rgba(100,100,100,0.1)'};return `color:${s.color};background:${s.bg};`;}
-function stageOrder(id){return STAGES.find(s=>s.id===id)?.order??99;}
-
-function kpis(id){
-  const p=get(id).pipeline||[];
-  return{
-    activos:p.filter(r=>!['venta_cerrada','venta_perdida','stand_by'].includes(r.estado)).length,
-    forecast:p.reduce((s,r)=>s+(parseFloat(r.monto)||0),0),
-    cerradas:p.filter(r=>r.estado==='venta_cerrada').length,
-    negociacion:p.filter(r=>r.estado==='en_negociacion').length,
-    total:p.length
+      remoteData.pipeline = res.pipeline || {};
+      remoteData.tasks    = res.tasks    || {};
+      syncStatus('ok','sincronizado · '+now());
+    } else {
+      syncStatus('err','error al cargar');
+    }
+    renderTabs();
+    renderContent();
   };
+  script.src = `${SCRIPT_URL}?action=loadAll&callback=${cbName}&t=${Date.now()}`;
+  script.onerror = () => {
+    delete window[cbName];
+    overlay(false);
+    syncStatus('err','sin conexión — revisar URL del script');
+    renderTabs();
+    renderContent();
+  };
+  document.head.appendChild(script);
 }
 
+// ── POST (guardar) ────────────────────────────────────────
+async function apiPost(body) {
+  const res = await fetch(SCRIPT_URL, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(body)
+  });
+  return res.json();
+}
+
+// ── SAVE ──────────────────────────────────────────────────
+async function doSave() {
+  const entityId = currentOR==='mexico' ? currentBP : currentOR;
+  syncStatus('loading','guardando...');
+  try {
+    const pipeline = remoteData.pipeline[entityId] || [];
+    const tasks    = remoteData.tasks[entityId]    || [];
+    await apiPost({action:'savePipeline', entityId, rows: pipeline});
+    await apiPost({action:'saveTasks',    entityId, tasks});
+    syncStatus('ok','guardado · '+now());
+    flash();
+  } catch(e) {
+    syncStatus('err','error al guardar');
+  }
+}
+
+// ── UI HELPERS ────────────────────────────────────────────
+function overlay(show,msg=''){
+  document.getElementById('overlay').classList.toggle('hidden',!show);
+  if(msg) document.getElementById('overlayText').textContent=msg;
+}
+function syncStatus(state,msg){
+  const d=document.getElementById('sdot'),t=document.getElementById('stext');
+  d.className='sdot '+(state==='ok'?'ok':state==='err'?'err':'loading');
+  t.textContent=msg;
+}
+function now(){return new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});}
+function flash(){
+  const f=document.getElementById('flash');
+  if(f){f.classList.add('show');setTimeout(()=>f.classList.remove('show'),1800);}
+}
+function uid(){return Math.random().toString(36).substr(2,8);}
+
+// ── TABS ──────────────────────────────────────────────────
 function renderTabs(){
-  const isGlobal=currentOR==='global';
-  let html=`<button class="or-tab ${isGlobal?'glob-active':''}" onclick="switchOR('global')">🌎 Global</button>`;
-  html+=ORS.map(or=>{
-    const isMx=or.type==='mexico',isActive=currentOR===or.id;
-    let st;
-    if(isMx){const ss=MEXICO_BPS.map(b=>stOf(b.id));st=ss.includes('rojo')?'rojo':ss.includes('amarillo')?'amarillo':'verde';}
-    else st=stOf(or.id);
-    const dc=st==='verde'?'#c8f135':st==='rojo'?'#ff4d4d':'#f1a135';
-    const cls=isActive?(isMx?'mx-active':'active'):'';
-    return `<button class="or-tab ${cls}" onclick="switchOR('${or.id}')"><span class="dot" style="background:${isActive?'currentColor':dc}"></span>${or.flag} ${or.name}</button>`;
+  document.getElementById('orTabs').innerHTML = ORS.map(or=>{
+    const isMx=or.type==='mexico';
+    const isAct=currentOR===or.id;
+    const activeClass=isAct?(isMx?'mx-active':'active'):'';
+    const dotStyle=isMx&&!isAct?'background:var(--blue)':'';
+    return `<button class="or-tab ${activeClass}" onclick="switchOR('${or.id}')">
+      <span class="dot o" style="${dotStyle}"></span>${or.flag} ${or.name}
+    </button>`;
   }).join('');
-  document.getElementById('orTabs').innerHTML=html;
+
   const bpWrap=document.getElementById('bpWrap');
   if(currentOR==='mexico'){
     bpWrap.classList.add('show');
-    document.getElementById('bpTabs').innerHTML=MEXICO_BPS.map(bp=>{
-      const em=stOf(bp.id)==='verde'?'🟢':stOf(bp.id)==='rojo'?'🔴':'🟡';
-      return `<button class="bp-tab ${currentBP===bp.id?'active':''}" onclick="switchBP('${bp.id}')">${em} ${bp.role} · ${bp.name}</button>`;
-    }).join('');
-  }else bpWrap.classList.remove('show');
+    document.getElementById('bpTabs').innerHTML=MEXICO_BPS.map(bp=>`
+      <button class="bp-tab ${currentBP===bp.id?'active':''}" onclick="switchBP('${bp.id}')">
+        ${bp.role} · ${bp.name}
+      </button>`).join('');
+  } else { bpWrap.classList.remove('show'); }
 }
+
 function switchOR(id){currentOR=id;if(id==='mexico')currentBP='mx_juanpa';renderTabs();renderContent();}
 function switchBP(id){currentBP=id;renderTabs();renderContent();}
-
-function renderContent(){
-  if(currentOR==='global'){renderGlobal();return;}
-  const id=eid(),isMx=currentOR==='mexico';
-  const entity=isMx?MEXICO_BPS.find(b=>b.id===id):ORS.find(o=>o.id===id);
-  const orInfo=ORS.find(o=>o.id===currentOR);
-  const d=get(id),k=kpis(id);
-  const badge=isMx
-    ?`<div class="ctx-badge mx">🇲🇽 México · <strong>${entity.role}</strong> · ${entity.name}</div>`
-    :`<div class="ctx-badge or">${orInfo.flag} Oficina Regional · ${entity?.name||''}</div>`;
-  const sorted=[...d.pipeline].map((r,i)=>({...r,_i:i})).sort((a,b)=>stageOrder(a.estado)-stageOrder(b.estado));
-  const pRows=sorted.length?sorted.map(row=>{
-    const i=row._i;
-    return `<tr>
-      <td><input class="tbl-input" placeholder="Empresa..." value="${esc(row.empresa)}" oninput="upP(${i},'empresa',this.value)"></td>
-      <td><input class="tbl-input" placeholder="Producto..." value="${esc(row.producto)}" oninput="upP(${i},'producto',this.value)"></td>
-      <td class="hide-mobile"><input class="tbl-input mono" placeholder="0" value="${esc(row.monto)}" oninput="upP(${i},'monto',this.value);refreshKPIs()"></td>
-      <td style="min-width:190px"><select class="stage-select" style="${stageStyle(row.estado)}" onchange="upP(${i},'estado',this.value);applySelectStyle(this);renderContent()">${STAGES.map(s=>`<option value="${s.id}" ${s.id===row.estado?'selected':''}>${s.emoji} ${s.label}</option>`).join('')}</select></td>
-      <td class="hide-mobile"><input class="tbl-input" placeholder="Comentarios..." value="${esc(row.comentarios)}" oninput="upP(${i},'comentarios',this.value)"></td>
-      <td><button class="del-btn" onclick="delP(${i})">×</button></td>
-    </tr>`;
-  }).join(''):'<tr class="empty-row"><td colspan="6">Sin registros · presioná &quot;+ agregar empresa&quot; para empezar</td></tr>';
-  const tRows=d.tasks.length?d.tasks.map((t,i)=>`
-    <tr class="${t.done?'done-row':''}">
-      <td style="width:28px;text-align:center"><input type="checkbox" class="task-check" ${t.done?'checked':''} onchange="upT(${i},'done',this.checked);renderContent()"></td>
-      <td><input class="tbl-input" placeholder="Tarea / acción..." value="${esc(t.tarea)}" oninput="upT(${i},'tarea',this.value)"></td>
-      <td style="width:140px"><input type="date" class="date-input" value="${t.deadline||''}" onchange="upT(${i},'deadline',this.value)"></td>
-      <td><input class="tbl-input" placeholder="Responsable..." value="${esc(t.responsable)}" oninput="upT(${i},'responsable',this.value)"></td>
-      <td><button class="del-btn" onclick="delT(${i})">×</button></td>
-    </tr>`).join(''):'<tr class="empty-row"><td colspan="5">Sin tareas · presioná &quot;+ agregar tarea&quot; para empezar</td></tr>';
-  document.getElementById('mainContent').innerHTML=`
-    ${badge}
-    <div class="kpi-bar">
-      <div class="kpi-card"><label>Activos en pipeline</label><div class="kpi-val blue" id="kpi-act">${k.activos}</div></div>
-      <div class="kpi-card"><label>Forecast total</label><div class="kpi-val" id="kpi-fc">${fmtMoney(k.forecast)}</div></div>
-      <div class="kpi-card"><label>Ventas cerradas</label><div class="kpi-val green" id="kpi-cl">${k.cerradas}</div></div>
-      <div class="kpi-card"><label>En negociación</label><div class="kpi-val orange" id="kpi-neg">${k.negociacion}</div></div>
-    </div>
-    <div class="slabel">🏢 Pipeline comercial</div>
-    <div class="tbl-wrap">
-      <table>
-        <thead><tr><th>Empresa</th><th>Producto</th><th class="hide-mobile">Monto USD</th><th>Estado del funnel</th><th class="hide-mobile">Comentarios</th><th style="width:40px"></th></tr></thead>
-        <tbody id="pTbody">${pRows}</tbody>
-      </table>
-      <button class="add-row-btn" onclick="addP()">+ agregar empresa</button>
-    </div>
-    <div class="slabel">📋 Tareas y prospección</div>
-    <div class="tbl-wrap">
-      <table>
-        <thead><tr><th style="width:28px"></th><th>Tarea / Acción</th><th style="width:140px">Deadline</th><th>Responsable</th><th style="width:40px"></th></tr></thead>
-        <tbody>${tRows}</tbody>
-      </table>
-      <button class="add-row-btn" onclick="addT()">+ agregar tarea</button>
-    </div>
-    <div class="bottom-bar">
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-        <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text-dimmer);letter-spacing:1px;text-transform:uppercase">Estado OR:</span>
-        <button class="sbadge verde ${d.status==='verde'?'on':''}" onclick="ust('verde')">🟢 En línea</button>
-        <button class="sbadge amarillo ${d.status==='amarillo'?'on':''}" onclick="ust('amarillo')">🟡 Atención</button>
-        <button class="sbadge rojo ${d.status==='rojo'?'on':''}" onclick="ust('rojo')">🔴 Crítico</button>
-      </div>
-      <div style="display:flex;align-items:center;gap:14px">
-        <span class="flash" id="flashBottom">guardado ✓</span>
-        <button class="save-btn" onclick="doSave()">Guardar</button>
-      </div>
-    </div>`;
+function switchSection(s){
+  currentSection=s;
+  document.querySelectorAll('.stab').forEach((t,i)=>{
+    t.classList.toggle('active',['pipeline','tasks','global'][i]===s);
+  });
+  renderContent();
 }
 
+// ── RENDER ────────────────────────────────────────────────
+function renderContent(){
+  if(currentSection==='global'){ renderGlobal(); return; }
+  const entityId=currentOR==='mexico'?currentBP:currentOR;
+  const isMx=currentOR==='mexico';
+  const entity=isMx?MEXICO_BPS.find(b=>b.id===entityId):ORS.find(o=>o.id===entityId);
+  const badgeClass=isMx?'mx':'or';
+  const badgeText=isMx?`🇲🇽 México · ${entity.role} · ${entity.name}`:`${ORS.find(o=>o.id===currentOR)?.flag} Oficina Regional · ${entity?.name||''}`;
+
+  let html=`<div class="ctx ${badgeClass}">${badgeText}</div>`;
+  if(currentSection==='pipeline') html+=renderPipeline(entityId);
+  if(currentSection==='tasks')    html+=renderTasks(entityId);
+  html+=`<div class="save-bar"><span class="flash" id="flash">guardado ✓</span><button class="save-btn" onclick="doSave()">Guardar</button></div>`;
+  document.getElementById('mainContent').innerHTML=html;
+}
+
+// ── PIPELINE ──────────────────────────────────────────────
+function getPipeline(entityId){
+  if(!remoteData.pipeline[entityId]) remoteData.pipeline[entityId]=[];
+  return remoteData.pipeline[entityId];
+}
+
+function renderPipeline(entityId){
+  const rows=getPipeline(entityId);
+  // KPIs
+  const total=rows.length;
+  const activos=rows.filter(r=>r.estado&&r.estado!=='cerrada'&&r.estado!=='perdida'&&r.estado!=='standby').length;
+  const cerradas=rows.filter(r=>r.estado==='cerrada').length;
+  const monto=rows.filter(r=>r.estado!=='perdida').reduce((a,r)=>a+(parseFloat((r.monto||'0').replace(/[^0-9.]/g,''))||0),0);
+  const negociacion=rows.filter(r=>r.estado==='negociacion'||r.estado==='propuesta').length;
+
+  return `
+    <div class="kpi-row">
+      <div class="kpi-card"><label>Total oportunidades</label><div class="kval">${total}</div></div>
+      <div class="kpi-card"><label>En proceso</label><div class="kval">${activos}</div></div>
+      <div class="kpi-card"><label>En negociación</label><div class="kval">${negociacion}</div></div>
+      <div class="kpi-card"><label>Cerradas</label><div class="kval" style="color:var(--green)">${cerradas}</div></div>
+      <div class="kpi-card"><label>Forecast USD</label><div class="kval small">$${monto.toLocaleString('es-AR')}</div></div>
+    </div>
+    <div class="funnel-legend">
+      ${ESTADOS.map(e=>`<span class="fl-item ${e.cls}" style="font-size:9px">${e.label}</span>`).join('')}
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Empresa</th><th>Producto</th><th>Monto USD</th><th>Fecha cierre est.</th><th style="min-width:180px">Estado</th><th>Comentarios</th><th></th>
+        </tr></thead>
+        <tbody id="pipelineBody">
+          ${rows.map((r,i)=>renderPipelineRow(r,i,entityId)).join('')}
+        </tbody>
+      </table>
+    </div>
+    <button class="add-row-btn" onclick="addPipelineRow('${entityId}')">+ agregar oportunidad</button>
+  `;
+}
+
+function renderPipelineRow(r,i,entityId){
+  const stObj=ESTADOS.find(e=>e.val===r.estado)||ESTADOS[0];
+  const opts=ESTADOS.map(e=>`<option value="${e.val}" ${r.estado===e.val?'selected':''}>${e.label}</option>`).join('');
+  return `<tr id="pr-${r.id}">
+    <td><input type="text" placeholder="Empresa..." value="${r.empresa||''}" oninput="upPipeline('${entityId}','${r.id}','empresa',this.value)"></td>
+    <td><input type="text" placeholder="Producto..." value="${r.producto||''}" oninput="upPipeline('${entityId}','${r.id}','producto',this.value)"></td>
+    <td><input type="number" placeholder="0" value="${r.monto||''}" oninput="upPipeline('${entityId}','${r.id}','monto',this.value)" style="width:90px"></td>
+    <td><input type="date" value="${r.fecha||''}" oninput="upPipeline('${entityId}','${r.id}','fecha',this.value)"></td>
+    <td><select class="status-sel ${stObj.cls}" onchange="upPipeline('${entityId}','${r.id}','estado',this.value);updateSelColor(this)">${opts}</select></td>
+    <td><input type="text" placeholder="Comentarios..." value="${r.comentarios||''}" oninput="upPipeline('${entityId}','${r.id}','comentarios',this.value)"></td>
+    <td><button class="del-btn" onclick="delPipelineRow('${entityId}','${r.id}')">✕</button></td>
+  </tr>`;
+}
+
+function updateSelColor(sel){
+  const stObj=ESTADOS.find(e=>e.val===sel.value)||ESTADOS[0];
+  sel.className='status-sel '+stObj.cls;
+}
+
+function addPipelineRow(entityId){
+  const rows=getPipeline(entityId);
+  rows.push({id:uid(),empresa:'',producto:'',monto:'',fecha:'',estado:'prospecto',comentarios:''});
+  renderContent();
+}
+
+function delPipelineRow(entityId,id){
+  remoteData.pipeline[entityId]=getPipeline(entityId).filter(r=>r.id!==id);
+  renderContent();
+}
+
+function upPipeline(entityId,id,field,val){
+  const row=getPipeline(entityId).find(r=>r.id===id);
+  if(row) row[field]=val;
+  // Recalculate KPIs live
+  const rows=getPipeline(entityId);
+  const monto=rows.filter(r=>r.estado!=='perdida').reduce((a,r)=>a+(parseFloat((r.monto||'0').replace(/[^0-9.]/g,''))||0),0);
+  const kvals=document.querySelectorAll('.kval');
+  if(kvals.length>=5) kvals[4].textContent='$'+monto.toLocaleString('es-AR');
+}
+
+// ── TASKS ─────────────────────────────────────────────────
+function getTasks(entityId){
+  if(!remoteData.tasks[entityId]) remoteData.tasks[entityId]=[];
+  return remoteData.tasks[entityId];
+}
+
+function renderTasks(entityId){
+  const tasks=getTasks(entityId);
+  return `
+    <div class="tasks-list">
+      ${tasks.map(t=>renderTaskRow(t,entityId)).join('')}
+    </div>
+    <button class="add-row-btn" onclick="addTask('${entityId}')" style="margin-top:10px">+ agregar tarea</button>
+  `;
+}
+
+function renderTaskRow(t,entityId){
+  return `<div class="task-item" id="ti-${t.id}">
+    <input type="checkbox" class="tcheck" ${t.done?'checked':''} onchange="upTask('${entityId}','${t.id}','done',this.checked)">
+    <input type="text" class="tinput ${t.done?'done':''}" placeholder="Tarea, prospección, evento, webinar..." value="${t.tarea||''}" oninput="upTask('${entityId}','${t.id}','tarea',this.value)" id="tt-${t.id}">
+    <input type="date" class="tdate" value="${t.deadline||''}" oninput="upTask('${entityId}','${t.id}','deadline',this.value)" title="Deadline">
+    <input type="text" class="tresp" placeholder="Responsable..." value="${t.responsable||''}" oninput="upTask('${entityId}','${t.id}','responsable',this.value)">
+    <button class="del-btn" onclick="delTask('${entityId}','${t.id}')">✕</button>
+  </div>`;
+}
+
+function addTask(entityId){
+  getTasks(entityId).push({id:uid(),tarea:'',deadline:'',responsable:'',done:false});
+  renderContent();
+  setTimeout(()=>{const inputs=document.querySelectorAll('.tinput');if(inputs.length)inputs[inputs.length-1].focus();},50);
+}
+
+function delTask(entityId,id){
+  remoteData.tasks[entityId]=getTasks(entityId).filter(t=>t.id!==id);
+  renderContent();
+}
+
+function upTask(entityId,id,field,val){
+  const task=getTasks(entityId).find(t=>t.id===id);
+  if(!task) return;
+  task[field]=val;
+  if(field==='done'){
+    const el=document.getElementById(`tt-${id}`);
+    if(el) el.className=`tinput ${val?'done':''}`;
+  }
+}
+
+// ── GLOBAL VIEW ───────────────────────────────────────────
 function renderGlobal(){
-  const all=[...ORS.filter(o=>o.type==='or').map(o=>({id:o.id,name:o.name,flag:o.flag})),...MEXICO_BPS.map(b=>({id:b.id,name:b.name,flag:'🇲🇽'}))];
-  let totFc=0,totCl=0,totAct=0;
-  all.forEach(e=>{const k=kpis(e.id);totFc+=k.forecast;totCl+=k.cerradas;totAct+=k.activos;});
-  const cards=all.map(e=>{
-    const k=kpis(e.id),d=get(e.id),st=d.status;
-    const stColor=st==='verde'?'#4ade80':st==='rojo'?'#ff4d4d':'#f1a135';
-    const stLabel=st==='verde'?'🟢 En línea':st==='rojo'?'🔴 Crítico':'🟡 Atención';
-    const stageCounts={};
-    (d.pipeline||[]).forEach(r=>{stageCounts[r.estado]=(stageCounts[r.estado]||0)+1;});
-    const stageRows=STAGES.filter(s=>stageCounts[s.id]).map(s=>{
-      const ss=STAGE_STYLE[s.id]||{color:'#888'};
-      return `<div class="stage-bar-row"><span>${s.emoji}</span><span class="stage-bar-label" style="color:${ss.color}">${s.label}</span><span class="stage-bar-count">${stageCounts[s.id]}</span></div>`;
-    }).join('');
-    return `<div class="global-card">
-      <div class="global-card-header"><div class="global-card-title">${e.flag} ${e.name}</div><span style="font-size:11px;color:${stColor}">${stLabel}</span></div>
-      <div class="global-row"><span class="global-row-key">Total pipeline</span><span class="global-row-val">${k.total}</span></div>
-      <div class="global-row"><span class="global-row-key">Forecast</span><span class="global-row-val">${fmtMoney(k.forecast)}</span></div>
-      <div class="global-row"><span class="global-row-key">Ventas cerradas</span><span class="global-row-val" style="color:#4ade80">${k.cerradas}</span></div>
-      ${stageRows?`<div class="stage-bar">${stageRows}</div>`:''}
+  const allEntities=[
+    ...ORS.filter(o=>o.type==='or'),
+    ...MEXICO_BPS
+  ];
+
+  const cards=allEntities.map(e=>{
+    const entityId=e.id;
+    const rows=remoteData.pipeline[entityId]||[];
+    const flag=e.flag||(MEXICO_BPS.find(b=>b.id===e.id)?'🇲🇽':'');
+    const name=e.role?`${e.role} · ${e.name}`:e.name;
+    const activos=rows.filter(r=>r.estado&&r.estado!=='cerrada'&&r.estado!=='perdida').length;
+    const cerradas=rows.filter(r=>r.estado==='cerrada').length;
+    const monto=rows.filter(r=>r.estado!=='perdida').reduce((a,r)=>a+(parseFloat((r.monto||'0').replace(/[^0-9.]/g,''))||0),0);
+    const neg=rows.filter(r=>r.estado==='negociacion'||r.estado==='propuesta').length;
+    return `<div class="global-card" onclick="goToOR('${entityId}')">
+      <div class="gc-header">
+        <div class="gc-name">${flag} ${name}</div>
+        <div class="gc-badge amarillo">${rows.length} opp</div>
+      </div>
+      <div class="gc-kpi">En proceso <span>${activos}</span></div>
+      <div class="gc-kpi">En negociación <span>${neg}</span></div>
+      <div class="gc-kpi">Cerradas <span style="color:var(--green)">${cerradas}</span></div>
+      <div class="gc-kpi">Forecast USD <span>$${monto.toLocaleString('es-AR')}</span></div>
     </div>`;
   }).join('');
+
+  // Totales globales
+  const allRows=Object.values(remoteData.pipeline).flat();
+  const totalMonto=allRows.filter(r=>r.estado!=='perdida').reduce((a,r)=>a+(parseFloat((r.monto||'0').replace(/[^0-9.]/g,''))||0),0);
+  const totalCerradas=allRows.filter(r=>r.estado==='cerrada').length;
+  const totalActivos=allRows.filter(r=>r.estado&&r.estado!=='cerrada'&&r.estado!=='perdida').length;
+
   document.getElementById('mainContent').innerHTML=`
-    <div class="ctx-badge global">🌎 Vista global · todas las ORs + BPs</div>
-    <div class="kpi-bar" style="margin-bottom:28px">
-      <div class="kpi-card"><label>Activos total</label><div class="kpi-val blue">${totAct}</div></div>
-      <div class="kpi-card"><label>Forecast global</label><div class="kpi-val">${fmtMoney(totFc)}</div></div>
-      <div class="kpi-card"><label>Ventas cerradas</label><div class="kpi-val green">${totCl}</div></div>
-      <div class="kpi-card"><label>ORs y BPs</label><div class="kpi-val blue">${all.length}</div></div>
+    <div class="kpi-row" style="margin-bottom:20px">
+      <div class="kpi-card"><label>Total oportunidades</label><div class="kval">${allRows.length}</div></div>
+      <div class="kpi-card"><label>En proceso</label><div class="kval">${totalActivos}</div></div>
+      <div class="kpi-card"><label>Cerradas</label><div class="kval" style="color:var(--green)">${totalCerradas}</div></div>
+      <div class="kpi-card" style="grid-column:span 2"><label>Forecast Total USD</label><div class="kval small">$${totalMonto.toLocaleString('es-AR')}</div></div>
     </div>
-    <div class="slabel">📊 Breakdown por OR / BP</div>
-    <div class="global-grid">${cards}</div>`;
+    <div class="global-grid">${cards}</div>
+  `;
 }
 
-function upP(i,field,val){const d=get(eid());if(d.pipeline[i])d.pipeline[i][field]=val;}
-function upT(i,field,val){const d=get(eid());if(d.tasks[i])d.tasks[i][field]=val;}
-function addP(){
-  get(eid()).pipeline.push({empresa:'',producto:'',monto:'',estado:'prospecto_identificado',comentarios:''});
+function goToOR(entityId){
+  const bp=MEXICO_BPS.find(b=>b.id===entityId);
+  if(bp){currentOR='mexico';currentBP=entityId;}
+  else{currentOR=entityId;}
+  currentSection='pipeline';
+  document.querySelectorAll('.stab').forEach((t,i)=>t.classList.toggle('active',i===0));
+  renderTabs();
   renderContent();
-  setTimeout(()=>{const els=document.querySelectorAll('#pTbody input[placeholder="Empresa..."]');if(els.length)els[els.length-1].focus();},40);
 }
-function addT(){get(eid()).tasks.push({tarea:'',deadline:'',responsable:'',done:false});renderContent();}
-function delP(i){get(eid()).pipeline.splice(i,1);renderContent();}
-function delT(i){get(eid()).tasks.splice(i,1);renderContent();}
-function ust(st){get(eid()).status=st;renderTabs();renderContent();}
-function refreshKPIs(){
-  const k=kpis(eid());
-  const up=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
-  up('kpi-act',k.activos);up('kpi-fc',fmtMoney(k.forecast));up('kpi-cl',k.cerradas);up('kpi-neg',k.negociacion);
-}
-function applySelectStyle(sel){const s=STAGE_STYLE[sel.value]||{color:'#888',bg:'rgba(100,100,100,0.1)'};sel.style.color=s.color;sel.style.background=s.bg;}
 
+// ── INIT ──────────────────────────────────────────────────
 loadAll();
-setInterval(()=>loadAll(),60000);
+setInterval(loadAll, 90000);
 </script>
 </body>
 </html>
